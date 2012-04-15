@@ -9,6 +9,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.joshdholtz.protocol.lib.helpers.ProtocolConnectTask;
@@ -21,9 +24,13 @@ public class Protocol {
 	private String baseUrl;
 	private Map<String, BasicNameValuePair> headers;
 	
+	private boolean debug;
+	
 	private Protocol() {
 		baseUrl = null;
 		headers = new HashMap<String, BasicNameValuePair>();
+		
+		debug = false;
 	}
 	
 	public static Protocol getInstance() {
@@ -76,6 +83,30 @@ public class Protocol {
 	}
 	
 	/**
+	 * @return the debug
+	 */
+	public boolean isDebug() {
+		return debug;
+	}
+
+	/**
+	 * @param debug the debug to set
+	 */
+	public void setDebug(boolean debug) {
+		this.debug = debug;
+	}
+
+	/**
+	 * Checks if network is available.
+	 * @return boolean
+	 */
+	public boolean isNetworkAvailable(Context context) {
+	    ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+	    return activeNetworkInfo != null;
+	}
+	
+	/**
 	 * Performs a GET request with no params.
 	 * 
 	 * If no base url is set, the route passed in will be the full route used.
@@ -105,6 +136,10 @@ public class Protocol {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "GET - " + status + ", " + data);
+				}
+				
 				responseHandler.handleResponse(response, status, data);
 			}
 			
@@ -142,6 +177,10 @@ public class Protocol {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "POST - " + status + ", " + data);
+				}
+				
 				responseHandler.handleResponse(response, status, data);
 			}
 			
@@ -179,6 +218,10 @@ public class Protocol {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "PUT - " + status + ", " + data);
+				}
+				
 				responseHandler.handleResponse(response, status, data);
 			}
 			
@@ -216,6 +259,10 @@ public class Protocol {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "DELETE - " + status + ", " + data);
+				}
+				
 				responseHandler.handleResponse(response, status, data);
 			}
 			

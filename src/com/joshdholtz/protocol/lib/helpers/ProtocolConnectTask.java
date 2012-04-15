@@ -107,24 +107,24 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	protected void onPostExecute(HttpResponse httpResponse) {
 		timer.cancel();
 		
-		int status = httpResponse.getStatusLine().getStatusCode();
-		StringBuffer out = new StringBuffer();
-		
-		// Gets the input stream and unpackages the response into a command
-		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
-			String line = null;
-			while((line = reader.readLine()) != null){
-				out.append(line + "\n");
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
 		if (this.isCancelled() || httpResponse == null) {
 			handler.handleResponse(null, -1, null);
 		} else {
+			int status = httpResponse.getStatusLine().getStatusCode();
+			StringBuffer out = new StringBuffer();
+			
+			// Gets the input stream and unpackages the response into a command
+			try {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+				String line = null;
+				while((line = reader.readLine()) != null){
+					out.append(line + "\n");
+				}
+				reader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
 			handler.handleResponse(httpResponse, status, out.toString());
 		}
 	}
