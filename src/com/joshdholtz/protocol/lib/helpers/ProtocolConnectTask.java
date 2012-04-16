@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
@@ -16,6 +17,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -31,16 +34,22 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 
 	private HttpMethod method;
 	private String route;
-	private List<BasicNameValuePair> params;
+	private String contentType;
+	private HttpEntity entity;
 	private Timer timer;
 	private GotResponse handler;
 	
 	private HttpUriRequest httpUriRequest;
 	
-	public ProtocolConnectTask(HttpMethod method, String route, List<BasicNameValuePair> params, GotResponse handler) {
+	public ProtocolConnectTask(HttpMethod method, String route, HttpEntity entity, GotResponse handler) {
+		this(method, route, null, entity, handler);
+	}
+	
+	public ProtocolConnectTask(HttpMethod method, String route, String contentType, HttpEntity entity, GotResponse handler) {
 		this.method = method;
 		this.route = route;
-		this.params = params;
+		this.contentType = contentType;
+		this.entity = entity;
 		this.handler = handler;
 	}
 	
@@ -60,20 +69,27 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 			// Creates the request
 			switch(method) {
 				case HTTP_GET:
-					httpUriRequest = new HttpGet(route + this.paramsToString(params));
+					httpUriRequest = new HttpGet(route);
 					break;
 				case HTTP_POST:
 					HttpPost httpPostRequest = new HttpPost(route);
-					httpPostRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+					httpPostRequest.setEntity(entity);
 					httpUriRequest = httpPostRequest;
 					break;
 				case HTTP_PUT:
 					HttpPut httpPutRequest = new HttpPut(route);
-					httpPutRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+					httpPutRequest.setEntity(entity);
 					httpUriRequest = httpPutRequest;
 					break;
 				case HTTP_DELETE:
-					httpUriRequest = new HttpDelete(route + this.paramsToString(params));
+					httpUriRequest = new HttpDelete(route);
+					break;
+				case HTTP_POST_FILE:
+					HttpPost httpPostFileRequest = new HttpPost(route);
+					httpPostFileRequest.setEntity(entity);
+					httpUriRequest = httpPostFileRequest;
+					httpUriRequest.addHeader("Content-Type", contentType);
+					
 					break;
 			}
 			
@@ -127,22 +143,6 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 			
 			handler.handleResponse(httpResponse, status, out.toString());
 		}
-	}
-	
-	private String paramsToString(List<BasicNameValuePair> params) {
-		String paramsStr = "?";
-		try {
-			for (int i = 0; i < params.size(); ++i) {
-				if (i != 0) {
-					paramsStr += "&";
-				}
-				paramsStr += URLEncoder.encode(params.get(i).getName(), "UTF-8") + "=" + URLEncoder.encode(params.get(i).getValue(), "UTF-8");
-			}
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		
-		return paramsStr;
 	}
 	
 	class ConnectTimerTask extends TimerTask {
