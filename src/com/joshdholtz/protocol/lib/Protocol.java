@@ -309,21 +309,36 @@ public class Protocol {
 		task.execute();
 	}
 	
-	public void doPostWithFile(String route, final File file, final ProtocolResponse responseHandler) {
+	/**
+	 * Performs a multipart POST with params and files.
+	 * @param route
+	 * @param params
+	 * @param files
+	 * @param responseHandler
+	 */
+	public void doPostWithFile(String route, List<BasicNameValuePair> params, List<File> files, final ProtocolResponse responseHandler) {
+		Map<String, File> filesMap = new HashMap<String, File>();
+		for (int i = 0; i < files.size(); ++i) {
+			filesMap.put("file" + (i+1), files.get(i));
+		}
+		
+		this.doPostWithFile(route, params, files, responseHandler);
+	}
+	
+	/**
+	 * Performs a multipart POST with params and files.
+	 * @param route
+	 * @param params
+	 * @param files
+	 * @param responseHandler
+	 */
+	public void doPostWithFile(String route, List<BasicNameValuePair> params, Map<String, File> files, final ProtocolResponse responseHandler) {
 		if (this.getBaseUrl() != null) {
 			route = this.getBaseUrl() + route;
 		}
 		
 		final String boundary = "---------------------------14737809831466499882746641449";
 		String contentType = "multipart/form-data; boundary=" + boundary;
-		
-		List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
-		params.add(new BasicNameValuePair("param1", "value1"));
-		params.add(new BasicNameValuePair("param2", "value2"));
-		
-		List<File> files = new ArrayList<File>();
-		files.add(file);
-		files.add(file);
 		
 		HttpEntity entity = new ProtocolMultipartEntity(boundary, params, files);
 		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST_FILE, route, contentType, entity, new GotResponse() {

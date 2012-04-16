@@ -136,19 +136,6 @@ public class ProtocolActivity extends Activity {
 //                } catch (Exception e) {
 //                	
 //                }
-                
-                
-                
-                Toast.makeText(ProtocolActivity.this, "File - " + filePath + ", " + file.length(), Toast.LENGTH_LONG).show();
-//                Protocol.getInstance().doPostWithFile("/file", file, new ProtocolResponse() {
-                Protocol.getInstance().doPostWithFile("/fileupload.php", file, new ProtocolResponse() {
-
-        			@Override
-        			public void handleResponse(HttpResponse response, int status, String data) {
-        				Log.d(ProtocolConstants.LOG_TAG, "Done posting file?");
-        			}
-                	
-                });
             }
         }
     }
