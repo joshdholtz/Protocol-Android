@@ -25,6 +25,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 
 import com.joshdholtz.protocol.lib.Protocol;
+import com.joshdholtz.protocol.lib.ProtocolMultipartEntity;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
 
 import android.os.AsyncTask;
@@ -56,7 +57,7 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	@Override
 	protected void onPreExecute() {
 		timer = new Timer();
-		timer.schedule(new ConnectTimerTask(), 30000);
+		timer.schedule(new ConnectTimerTask(), 100000);
 	}
 	
 	@Override
@@ -88,7 +89,15 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 					HttpPost httpPostFileRequest = new HttpPost(route);
 					httpPostFileRequest.setEntity(entity);
 					httpUriRequest = httpPostFileRequest;
+					
 					httpUriRequest.addHeader("Content-Type", contentType);
+					
+					
+					
+//					httpUriRequest.addHeader("Content-Length", String.valueOf(multi.forRealSize()));
+//					httpUriRequest.addHeader("Accept", "*/*");
+//					httpUriRequest.addHeader("Accept-Language", "en-us");
+//					httpUriRequest.addHeader("Accept-Encoding", "gzip, deflate");
 					
 					break;
 			}
@@ -105,7 +114,7 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 
 //			return command.unpackageJSON(out.toString());
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 	
 		return null;

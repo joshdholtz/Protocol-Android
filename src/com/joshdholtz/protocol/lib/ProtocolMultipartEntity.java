@@ -18,6 +18,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import android.util.Log;
 
+import com.joshdholtz.protocol.lib.helpers.CountingOutputStream;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
 public class ProtocolMultipartEntity extends BasicHttpEntity {
@@ -25,6 +26,9 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 	private String boundary;
 	private List<BasicNameValuePair> params;
 	private Map<String, File> files;
+	
+	private long size = 0;
+	int forRealSize = 0;
 	
 	public ProtocolMultipartEntity (String boundary, File file) {
 		this.boundary = boundary;
@@ -61,9 +65,12 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 	
 	@Override
     public void writeTo(final OutputStream output) throws IOException {
+		
 		PrintWriter writer = null;
 		try {
-		    writer = new PrintWriter(new OutputStreamWriter(output, "UTF-8"), true); // true = Autoflush, important!
+			CountingOutputStream countingOutputStream = new CountingOutputStream(output);
+		    writer = new PrintWriter(new OutputStreamWriter(countingOutputStream, "UTF-8"), true); // true = Autoflush, important!
+		    
 
 		    for (int i = 0; i < params.size(); ++i) {
 			    writer.println("--" + boundary);
@@ -79,37 +86,92 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 		    	
 		    	writer.println("--" + boundary);
 			    writer.println("Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
-			    writer.println("Content-Type: " + URLConnection.guessContentTypeFromName(file.getName()));
-			    writer.println("Content-Transfer-Encoding: binary");
+			    Log.d(ProtocolConstants.LOG_TAG, "Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
+//			    writer.println("Content-Type: " + URLConnection.guessContentTypeFromName(file.getName()));
+			    writer.println("Content-Type: application/octet-stream");
+//			    writer.println("Content-Transfer-Encoding: binary");
 			    writer.println();
-			    
-			    
 		    	
 			    InputStream input = null;
 			    try {
 			        input = new FileInputStream(file);
 			        byte[] buffer = new byte[1024];
 			        for (int length = 0; (length = input.read(buffer)) > 0;) {
-			            output.write(buffer, 0, length);
+			        	countingOutputStream.write(buffer, 0, length);
 			        }
-			        output.flush();
+			        countingOutputStream.flush();
 			    } finally {
 			        if (input != null) try { input.close(); } catch (IOException logOrIgnore) {}
 			    }
 			    
-			    if (i < (fileNames.size() - 1)) {
-			    	writer.println("--" + boundary);
-			    }
+//			    if (i < (fileNames.size() - 1)) {
+//			    	writer.println("--" + boundary);
+//			    }
 			    
 			    writer.println();
 		    }
 
 		    writer.println("--" + boundary + "--");
+		    
+		    Log.d(ProtocolConstants.LOG_TAG, "Counting size - " + countingOutputStream.getByteCount());
+		    size = countingOutputStream.getByteCount();
+		    
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 		    if (writer != null) writer.close();
 		}
     }
+	
+	@Override
+	public boolean isRepeatable() {
+		return false;
+	}
+	
+	@Override
+	public long getContentLength() {
+		Log.d(ProtocolConstants.LOG_TAG, "Calling mutlipart getContentLength() - " + forRealSize);
+		return forRealSize;
+	}
+	
+	public long forRealSize() {
+		    for (int i = 0; i < params.size(); ++i) {
+			    println("--" + boundary);
+			    println("Content-Disposition: form-data; name=\"" + params.get(i).getName() + "\"");
+			    println("Content-Type: text/plain; charset=UTF-8");
+			    println();
+			    println(params.get(i).getValue());
+		    }
+		    
+		    List<String> fileNames = new ArrayList<String>(files.keySet());
+		    for (int i = 0; i < fileNames.size(); ++i) {
+		    	File file = files.get(fileNames.get(i));
+		    	
+		    	println("--" + boundary);
+			    println("Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
+			    Log.d(ProtocolConstants.LOG_TAG, "Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
+//			    writer.println("Content-Type: " + URLConnection.guessContentTypeFromName(file.getName()));
+			    println("Content-Type: application/octet-stream");
+//			    println("Content-Transfer-Encoding: binary");
+			    println();
+		    	
+			   forRealSize += file.length();
+			    
+			    println();
+		    }
+
+		    println("--" + boundary + "--");
+		    
+		  return forRealSize;
+	}
+	
+	public void println() {
+		forRealSize += "\n".getBytes().length;
+	}
+	
+	public void println(String str) {
+		str = str + "\n";
+		forRealSize += str.getBytes().length;
+	}
 
 }

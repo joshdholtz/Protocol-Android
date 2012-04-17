@@ -322,7 +322,7 @@ public class Protocol {
 			filesMap.put("file" + (i+1), files.get(i));
 		}
 		
-		this.doPostWithFile(route, params, files, responseHandler);
+		this.doPostWithFile(route, params, filesMap, responseHandler);
 	}
 	
 	/**
@@ -337,10 +337,15 @@ public class Protocol {
 			route = this.getBaseUrl() + route;
 		}
 		
+		Log.d(ProtocolConstants.LOG_TAG, "SHOW THIS!!!!");
+		
 		final String boundary = "---------------------------14737809831466499882746641449";
 		String contentType = "multipart/form-data; boundary=" + boundary;
 		
-		HttpEntity entity = new ProtocolMultipartEntity(boundary, params, files);
+		Log.d(ProtocolConstants.LOG_TAG, "Number of files: " + files.size());
+		
+		ProtocolMultipartEntity entity = new ProtocolMultipartEntity(boundary, params, files);
+		Log.d(ProtocolConstants.LOG_TAG, "Size - " + entity.forRealSize());
 		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST_FILE, route, contentType, entity, new GotResponse() {
 
 			@Override

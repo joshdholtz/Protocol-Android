@@ -122,20 +122,17 @@ public class ProtocolActivity extends Activity {
                 
                 File file = new File(filePath);
                 
-//                try {
-//		            InputStream is = new BufferedInputStream(new FileInputStream(file));
-//					
-//					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//					byte[] b = new byte[1024];
-//					int bytesRead;
-//					while ((bytesRead = is.read(b)) != -1) {
-//					   bos.write(b, 0, bytesRead);
-//					}
-//					byte[] bytes = bos.toByteArray();
-//					txt.setText(Html.fromHtml(new String(bytes, "UTF-8")).toString());
-//                } catch (Exception e) {
-//                	
-//                }
+                List<File> files = new ArrayList<File>();
+                files.add(file);
+                Protocol.getInstance().doPostWithFile("/fileupload.php", new ArrayList<BasicNameValuePair>(), files, new ProtocolResponse() {
+
+					@Override
+					public void handleResponse(HttpResponse response, int status, String data) {
+						
+					}
+                	
+                });
+                
             }
         }
     }
