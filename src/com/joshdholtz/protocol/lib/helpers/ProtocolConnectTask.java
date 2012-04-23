@@ -108,6 +108,7 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 				httpUriRequest.setHeader(header.getName(), header.getValue());
 			}
 			
+			Log.d(ProtocolConstants.LOG_TAG, "URL - " + route);
 			HttpResponse httpResponse = httpClient.execute(httpUriRequest);
 			
 			return httpResponse;
