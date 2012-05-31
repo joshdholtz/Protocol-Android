@@ -1,35 +1,21 @@
 package com.joshdholtz.protocol.lib;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -42,6 +28,9 @@ import com.joshdholtz.protocol.lib.helpers.ProtocolConnectTask.GotResponse;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
 
 public class Protocol {
+	
+	public final static String CONTENT_TYPE_FORM_DATA = "application/x-www-form-urlencoded";
+	public final static String CONTENT_TYPE_JSON = "application/json";
 
 	private String baseUrl;
 	private Map<String, BasicNameValuePair> headers;
@@ -137,7 +126,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doGet(String route, final ProtocolResponse responseHandler) {
-		this.doGet(route, new ArrayList<BasicNameValuePair>(), responseHandler);
+		this.doGet(route, new HashMap<String, Object>(), responseHandler);
 	}
 	
 	/**
@@ -149,13 +138,27 @@ public class Protocol {
 	 * @param params
 	 * @param responseHandler
 	 */
-	public void doGet(String route, List<BasicNameValuePair> params, final ProtocolResponse responseHandler) {
+	public void doGet(String route, Map<String,Object> params, final ProtocolResponse responseHandler) {
+		this.doGet(route, params, null, responseHandler);
+	}
+	
+	/**
+	 * Performs a GET request with params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param params
+	 * @param contentType
+	 * @param responseHandler
+	 */
+	public void doGet(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
 		if (this.getBaseUrl() != null) {
 			route = this.getBaseUrl() + route;
 		}
 		route = route + this.paramsToString(params);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, null, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, contentType, null, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -179,7 +182,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doPost(String route, final ProtocolResponse responseHandler) {
-		this.doPost(route, new ArrayList<BasicNameValuePair>(), responseHandler);
+		this.doPost(route, new HashMap<String, Object>(), responseHandler);
 	}
 	
 	/**
@@ -191,19 +194,79 @@ public class Protocol {
 	 * @param params
 	 * @param responseHandler
 	 */
-	public void doPost(String route, List<BasicNameValuePair> params, final ProtocolResponse responseHandler) {
+	public void doPost(String route, Map<String,Object> params, final ProtocolResponse responseHandler) {
+		this.doPost(route, params, CONTENT_TYPE_FORM_DATA, responseHandler);
+	}
+		
+	/**
+	 * Performs a POST request with params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param params
+	 * @param contentType
+	 * @param responseHandler
+	 */
+	public void doPost(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
+		if (this.getBaseUrl() != null) {
+			route = this.getBaseUrl() + route;
+		}
+		
+		HttpEntity entity = null;
+		if (Protocol.CONTENT_TYPE_JSON.equals(contentType)) {
+			try {
+				JSONObject jsonObject = new JSONObject(params);
+				entity = new StringEntity(jsonObject.toString());
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				entity = new UrlEncodedFormEntity(this.paramsToValuePairs(params), HTTP.UTF_8);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, contentType, entity, new GotResponse() {
+
+			@Override
+			public void handleResponse(HttpResponse response, int status, String data) {
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "POST - " + status + ", " + data);
+				}
+				
+				responseHandler.handleResponse(response, status, data);
+			}
+			
+		});
+		task.execute();
+	}
+	
+	/**
+	 * Performs a POST request with params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param params
+	 * @param contentType
+	 * @param responseHandler
+	 */
+	public void doPost(String route, JSONObject body, String contentType, final ProtocolResponse responseHandler) {
 		if (this.getBaseUrl() != null) {
 			route = this.getBaseUrl() + route;
 		}
 		
 		HttpEntity entity = null;
 		try {
-			entity = new UrlEncodedFormEntity(params, HTTP.UTF_8);
+			entity = new StringEntity(body.toString());
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, entity, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, contentType, entity, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -227,7 +290,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doPut(String route, final ProtocolResponse responseHandler) {
-		this.doPut(route, new ArrayList<BasicNameValuePair>(), responseHandler);
+		this.doPut(route, new HashMap<String, Object>(), responseHandler);
 	}
 	
 	/**
@@ -239,19 +302,79 @@ public class Protocol {
 	 * @param params
 	 * @param responseHandler
 	 */
-	public void doPut(String route, List<BasicNameValuePair> params, final ProtocolResponse responseHandler) {
+	public void doPut(String route, Map<String,Object> params, final ProtocolResponse responseHandler) {
+		this.doPut(route, params, CONTENT_TYPE_FORM_DATA, responseHandler);
+	}
+		
+	/**
+	 * Performs a PUT request with params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param params
+	 * @param contentType
+	 * @param responseHandler
+	 */
+	public void doPut(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
+		if (this.getBaseUrl() != null) {
+			route = this.getBaseUrl() + route;
+		}
+		
+		HttpEntity entity = null;
+		if (Protocol.CONTENT_TYPE_JSON.equals(contentType)) {
+			try {
+				JSONObject jsonObject = new JSONObject(params);
+				entity = new StringEntity(jsonObject.toString());
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				entity = new UrlEncodedFormEntity(this.paramsToValuePairs(params), HTTP.UTF_8);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, new GotResponse() {
+
+			@Override
+			public void handleResponse(HttpResponse response, int status, String data) {
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "PUT - " + status + ", " + data);
+				}
+				
+				responseHandler.handleResponse(response, status, data);
+			}
+			
+		});
+		task.execute();
+	}
+	
+	/**
+	 * Performs a PUT request with params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param params
+	 * @param contentType
+	 * @param responseHandler
+	 */
+	public void doPut(String route, JSONObject body, String contentType, final ProtocolResponse responseHandler) {
 		if (this.getBaseUrl() != null) {
 			route = this.getBaseUrl() + route;
 		}
 		
 		HttpEntity entity = null;
 		try {
-			entity = new UrlEncodedFormEntity(params, HTTP.UTF_8);
+			entity = new StringEntity(body.toString());
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, entity, new GotResponse() {
+
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -275,7 +398,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doDelete(String route, final ProtocolResponse responseHandler) {
-		this.doDelete(route, new ArrayList<BasicNameValuePair>(), responseHandler);
+		this.doDelete(route, new HashMap<String, Object>(), responseHandler);
 	}
 	
 	/**
@@ -287,14 +410,28 @@ public class Protocol {
 	 * @param params
 	 * @param responseHandler
 	 */
-	public void doDelete(String route, List<BasicNameValuePair> params, final ProtocolResponse responseHandler) {
+	public void doDelete(String route, Map<String,Object> params, final ProtocolResponse responseHandler) {
+		this.doDelete(route, params, null, responseHandler);
+	}
+	
+	/**
+	 * Performs a DELETE request with params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param params
+	 * @param contentType
+	 * @param responseHandler
+	 */
+	public void doDelete(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
 		if (this.getBaseUrl() != null) {
 			route = this.getBaseUrl() + route;
 		}
 		
 		route = route + this.paramsToString(params);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, null, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, contentType, null, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -361,20 +498,34 @@ public class Protocol {
 		task.execute();
 	}
 	
-	private String paramsToString(List<BasicNameValuePair> params) {
-		String paramsStr = "?";
-		try {
-			for (int i = 0; i < params.size(); ++i) {
-				if (i != 0) {
-					paramsStr += "&";
+	private String paramsToString(Map<String, Object> params) {
+		String paramsStr = "";
+		if (params != null) {
+			try {
+				List<String> keys = new ArrayList<String>(params.keySet());
+				for (int i = 0; i < keys.size(); ++i) {
+					if (i != 0) {
+						paramsStr += "&";
+					}
+					paramsStr += URLEncoder.encode(keys.get(i), "UTF-8") + "=" + URLEncoder.encode(params.get(keys.get(i)).toString(), "UTF-8");
 				}
-				paramsStr += URLEncoder.encode(params.get(i).getName(), "UTF-8") + "=" + URLEncoder.encode(params.get(i).getValue(), "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
 			}
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
 		}
 		
 		return paramsStr;
+	}
+	
+	private List<BasicNameValuePair> paramsToValuePairs(Map<String, Object> params) {
+		List<BasicNameValuePair> nameValuePair = new ArrayList<BasicNameValuePair>();
+
+		List<String> keys = new ArrayList<String>(params.keySet());
+		for (int i = 0; i < keys.size(); ++i) {
+			nameValuePair.add(new BasicNameValuePair(keys.get(i), params.get(keys.get(i)).toString()));
+		}
+		
+		return nameValuePair;
 	}
 	
 }

@@ -51,125 +51,125 @@ public class ProtocolActivity extends Activity {
 	 */
 	private void getMember() {
 		
-		// Creates the parameters for the request
-		List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
-		params.add(new BasicNameValuePair("example","member_1"));
-		
-		// Sends the GET request
-		Protocol.getInstance().doGet("/protocol.php", params, new ProtocolResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				
-				// Checks for an okay status of 200
-				if (status == 200) {
-
-					/*
-					 * Method 1 - Create empty model and calls "initFromJSONString"
-					 * initFromJSONString returns a boolean (return false if error with JSON parsing)
-					 */
-					MemberModel member = new MemberModel();
-					boolean success = member.initFromJSONString(data);
-					if (success) { 
-						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
-						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
-						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
-					}
-						
-					/*
-					 * Method 2 - Creates a model with ProtocolModel
-					 * Returns the model (return null if error with JSON parsing)
-					 * 
-					 * Why would we do this? There is a call similar to this that returns an array of model.
-					 * Some developers like consistency :)
-					 * 
-					 */
-					member = ProtocolModel.createModel(MemberModel.class, data);
-					if (member != null) {
-						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
-						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
-						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
-					}
-					
-				}
-			}
-
-		});
+//		// Creates the parameters for the request
+//		List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
+//		params.add(new BasicNameValuePair("example","member_1"));
+//		
+//		// Sends the GET request
+//		Protocol.getInstance().doGet("/protocol.php", params, new ProtocolResponse() {
+//
+//			@Override
+//			public void handleResponse(HttpResponse response, int status, String data) {
+//				
+//				// Checks for an okay status of 200
+//				if (status == 200) {
+//
+//					/*
+//					 * Method 1 - Create empty model and calls "initFromJSONString"
+//					 * initFromJSONString returns a boolean (return false if error with JSON parsing)
+//					 */
+//					MemberModel member = new MemberModel();
+//					boolean success = member.initFromJSONString(data);
+//					if (success) { 
+//						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
+//						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
+//						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
+//					}
+//						
+//					/*
+//					 * Method 2 - Creates a model with ProtocolModel
+//					 * Returns the model (return null if error with JSON parsing)
+//					 * 
+//					 * Why would we do this? There is a call similar to this that returns an array of model.
+//					 * Some developers like consistency :)
+//					 * 
+//					 */
+//					member = ProtocolModel.createModel(MemberModel.class, data);
+//					if (member != null) {
+//						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
+//						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
+//						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
+//					}
+//					
+//				}
+//			}
+//
+//		});
 		
 	}
 	
 	private void getMembers() {
 		
-		// Creates the parameters for the request
-		List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
-		params.add(new BasicNameValuePair("example","members"));
-		
-		// Sends the GET request
-		Protocol.getInstance().doGet("/protocol.php", params, new ProtocolResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				
-				// Checks for an okay status of 200
-				if (status == 200) {
-
-					/*
-					 * Method 1 - Loops through a JSONArray and creates empty model and calls "initFromJSONString"
-					 * for each object
-					 */
-					List<MemberModel> membersMethod1 = ProtocolModel.createModels(MemberModel.class, data);
-					try {
-						
-						// Individually maps JSON objects in JSON array to a list of models
-						JSONArray array = new JSONArray(data);
-						for (int i = 0; i < array.length(); ++i) {
-							MemberModel member = new MemberModel();
-							boolean success = member.initFromJSONString(data);
-							if (success) {
-								membersMethod1.add(member);
-							}
-						}
-						
-						// Prints out the data that we got
-						Log.d(ProtocolConstants.LOG_TAG, "Number of members - " + membersMethod1.size());
-						for (int i = 0; i < membersMethod1.size(); ++i) {
-							MemberModel member = membersMethod1.get(i);
-							Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
-							Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
-							Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
-						}
-						
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-					
-						
-					/*
-					 * Method 2 - Creates a list of models with ProtocolModel
-					 * Returns the list model (returns an empty array - no returning of null)
-					 * 
-					 * Why would we do this? There is a call similar to this that returns a single model
-					 * Some developers like consistency :)
-					 * 
-					 */
-					List<MemberModel> membersMethod2 = ProtocolModel.createModels(MemberModel.class, data);
-					if (membersMethod2 != null) {
-						
-						// Prints out the data that we got
-						Log.d(ProtocolConstants.LOG_TAG, "Number of members - " + membersMethod2.size());
-						for (int i = 0; i < membersMethod2.size(); ++i) {
-							MemberModel member = membersMethod2.get(i);
-							Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
-							Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
-							Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
-						}
-						
-					}
-					
-				}
-			}
-
-		});
+//		// Creates the parameters for the request
+//		List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
+//		params.add(new BasicNameValuePair("example","members"));
+//		
+//		// Sends the GET request
+//		Protocol.getInstance().doGet("/protocol.php", params, new ProtocolResponse() {
+//
+//			@Override
+//			public void handleResponse(HttpResponse response, int status, String data) {
+//				
+//				// Checks for an okay status of 200
+//				if (status == 200) {
+//
+//					/*
+//					 * Method 1 - Loops through a JSONArray and creates empty model and calls "initFromJSONString"
+//					 * for each object
+//					 */
+//					List<MemberModel> membersMethod1 = ProtocolModel.createModels(MemberModel.class, data);
+//					try {
+//						
+//						// Individually maps JSON objects in JSON array to a list of models
+//						JSONArray array = new JSONArray(data);
+//						for (int i = 0; i < array.length(); ++i) {
+//							MemberModel member = new MemberModel();
+//							boolean success = member.initFromJSONString(data);
+//							if (success) {
+//								membersMethod1.add(member);
+//							}
+//						}
+//						
+//						// Prints out the data that we got
+//						Log.d(ProtocolConstants.LOG_TAG, "Number of members - " + membersMethod1.size());
+//						for (int i = 0; i < membersMethod1.size(); ++i) {
+//							MemberModel member = membersMethod1.get(i);
+//							Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
+//							Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
+//							Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
+//						}
+//						
+//					} catch (JSONException e) {
+//						e.printStackTrace();
+//					}
+//					
+//						
+//					/*
+//					 * Method 2 - Creates a list of models with ProtocolModel
+//					 * Returns the list model (returns an empty array - no returning of null)
+//					 * 
+//					 * Why would we do this? There is a call similar to this that returns a single model
+//					 * Some developers like consistency :)
+//					 * 
+//					 */
+//					List<MemberModel> membersMethod2 = ProtocolModel.createModels(MemberModel.class, data);
+//					if (membersMethod2 != null) {
+//						
+//						// Prints out the data that we got
+//						Log.d(ProtocolConstants.LOG_TAG, "Number of members - " + membersMethod2.size());
+//						for (int i = 0; i < membersMethod2.size(); ++i) {
+//							MemberModel member = membersMethod2.get(i);
+//							Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
+//							Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
+//							Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
+//						}
+//						
+//					}
+//					
+//				}
+//			}
+//
+//		});
 		
 	}
 

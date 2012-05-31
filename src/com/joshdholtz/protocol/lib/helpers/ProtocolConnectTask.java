@@ -102,6 +102,10 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 					break;
 			}
 			
+			if (contentType != null) {
+				httpUriRequest.setHeader("Content-Type", contentType);
+			}
+			
 			// Adds the headers
 			for (int i = 0; i < Protocol.getInstance().getHeaders().size(); ++i) {
 				BasicNameValuePair header = Protocol.getInstance().getHeaders().get(i);
