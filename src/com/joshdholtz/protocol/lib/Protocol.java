@@ -501,6 +501,7 @@ public class Protocol {
 	private String paramsToString(Map<String, Object> params) {
 		String paramsStr = "";
 		if (params != null) {
+			paramsStr += "?";
 			try {
 				List<String> keys = new ArrayList<String>(params.keySet());
 				for (int i = 0; i < keys.size(); ++i) {
