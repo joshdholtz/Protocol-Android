@@ -24,8 +24,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 public class ProtocolActivity extends Activity {
+	
+	ImageView img;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -33,19 +37,26 @@ public class ProtocolActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
+		img = (ImageView) this.findViewById(R.id.img);
+		
 		Protocol.getInstance().setBaseUrl("http://joshdholtz.com");
 		Protocol.getInstance().setDebug(true);
 
 		/*
 		 * Shows how to do a simple GET request and map to a model
 		 */
-		this.getMember();
+//		this.getMember();
 		
 		/*
 		 * Shows how to do a simple GET request and map to a list of models
 		 */
-		this.getMembers();
+//		this.getMembers();
 
+		/*
+		 * Shows how to do a simple GET request to get a bitmap
+		 */
+		this.getBitmap();
+		
 	}
 	
 	/**
@@ -171,6 +182,24 @@ public class ProtocolActivity extends Activity {
 				}
 			}
 
+		});
+		
+	}
+	
+	private void getBitmap() {
+		
+		Protocol.getInstance().doGetBitmap("http://images2.fanpop.com/images/photos/6900000/cute-kitten-cats-6987468-670-578.jpg", new ProtocolBitmapResponse() {
+
+			@Override
+			public void handleResponse(Bitmap bitmap) {
+				
+				if (bitmap != null) {
+					img.setImageBitmap(bitmap);
+					Toast.makeText(ProtocolActivity.this, "Meow - " + bitmap.getWidth() + " x " + bitmap.getHeight(), Toast.LENGTH_LONG).show();
+				}
+				
+			}
+			
 		});
 		
 	}

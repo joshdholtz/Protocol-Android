@@ -1,6 +1,9 @@
 package com.joshdholtz.protocol.lib;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -18,10 +21,13 @@ import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
+import com.joshdholtz.protocol.lib.helpers.ProtocolConnectBitmapTask;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConnectTask;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConnectTask.GotResponse;
@@ -153,9 +159,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doGet(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
-		if (this.getBaseUrl() != null) {
-			route = this.getBaseUrl() + route;
-		}
+		route = this.formatRoute(route);
 		route = route + this.paramsToString(params);
 		
 		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, contentType, null, new GotResponse() {
@@ -168,9 +172,30 @@ public class Protocol {
 				
 				responseHandler.handleResponse(response, status, data);
 			}
+
+			@Override
+			public void handleResponse(HttpResponse response, int status, InputStream in) {
+				
+			}
 			
 		});
 		task.execute();
+	}
+	
+	/**
+	 * Performs a GET request with no params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param responseHandler
+	 */
+	public void doGetBitmap(String route, final ProtocolBitmapResponse responseHandler) {
+		route = this.formatRoute(route);
+		
+		ProtocolConnectBitmapTask task = new ProtocolConnectBitmapTask(route, responseHandler);
+		task.execute();
+		
 	}
 	
 	/**
@@ -209,9 +234,21 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doPost(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
-		if (this.getBaseUrl() != null) {
-			route = this.getBaseUrl() + route;
-		}
+		this.doPost(route, new HashMap<String,String>(), params, contentType, responseHandler);
+	}
+	
+	/**
+	 * Performs a POST request with params.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param params
+	 * @param contentType
+	 * @param responseHandler
+	 */
+	public void doPost(String route, Map<String,String> headers, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
+		route = this.formatRoute(route);
 		
 		HttpEntity entity = null;
 		if (Protocol.CONTENT_TYPE_JSON.equals(contentType)) {
@@ -223,13 +260,14 @@ public class Protocol {
 			}
 		} else {
 			try {
+				Log.d(ProtocolConstants.LOG_TAG, this.paramsToString(params));
 				entity = new UrlEncodedFormEntity(this.paramsToValuePairs(params), HTTP.UTF_8);
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, contentType, entity, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, headers, contentType, entity, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -238,6 +276,11 @@ public class Protocol {
 				}
 				
 				responseHandler.handleResponse(response, status, data);
+			}
+			
+			@Override
+			public void handleResponse(HttpResponse response, int status, InputStream in) {
+				
 			}
 			
 		});
@@ -255,9 +298,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doPost(String route, JSONObject body, String contentType, final ProtocolResponse responseHandler) {
-		if (this.getBaseUrl() != null) {
-			route = this.getBaseUrl() + route;
-		}
+		route = this.formatRoute(route);
 		
 		HttpEntity entity = null;
 		try {
@@ -275,6 +316,11 @@ public class Protocol {
 				}
 				
 				responseHandler.handleResponse(response, status, data);
+			}
+			
+			@Override
+			public void handleResponse(HttpResponse response, int status, InputStream in) {
+				
 			}
 			
 		});
@@ -317,9 +363,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doPut(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
-		if (this.getBaseUrl() != null) {
-			route = this.getBaseUrl() + route;
-		}
+		route = this.formatRoute(route);
 		
 		HttpEntity entity = null;
 		if (Protocol.CONTENT_TYPE_JSON.equals(contentType)) {
@@ -348,6 +392,11 @@ public class Protocol {
 				responseHandler.handleResponse(response, status, data);
 			}
 			
+			@Override
+			public void handleResponse(HttpResponse response, int status, InputStream in) {
+				
+			}
+			
 		});
 		task.execute();
 	}
@@ -363,9 +412,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doPut(String route, JSONObject body, String contentType, final ProtocolResponse responseHandler) {
-		if (this.getBaseUrl() != null) {
-			route = this.getBaseUrl() + route;
-		}
+		route = this.formatRoute(route);
 		
 		HttpEntity entity = null;
 		try {
@@ -383,6 +430,11 @@ public class Protocol {
 				}
 				
 				responseHandler.handleResponse(response, status, data);
+			}
+			
+			@Override
+			public void handleResponse(HttpResponse response, int status, InputStream in) {
+				
 			}
 			
 		});
@@ -425,10 +477,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doDelete(String route, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
-		if (this.getBaseUrl() != null) {
-			route = this.getBaseUrl() + route;
-		}
-		
+		route = this.formatRoute(route);
 		route = route + this.paramsToString(params);
 		
 		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, contentType, null, new GotResponse() {
@@ -440,6 +489,11 @@ public class Protocol {
 				}
 				
 				responseHandler.handleResponse(response, status, data);
+			}
+			
+			@Override
+			public void handleResponse(HttpResponse response, int status, InputStream in) {
+				
 			}
 			
 		});
@@ -470,9 +524,7 @@ public class Protocol {
 	 * @param responseHandler
 	 */
 	public void doPostWithFile(String route, List<BasicNameValuePair> params, Map<String, File> files, final ProtocolResponse responseHandler) {
-		if (this.getBaseUrl() != null) {
-			route = this.getBaseUrl() + route;
-		}
+		route = this.formatRoute(route);
 		
 		Log.d(ProtocolConstants.LOG_TAG, "SHOW THIS!!!!");
 		
@@ -494,14 +546,29 @@ public class Protocol {
 				responseHandler.handleResponse(response, status, data);
 			}
 			
+			@Override
+			public void handleResponse(HttpResponse response, int status, InputStream in) {
+				
+			}
+			
 		});
 		task.execute();
+	}
+	
+	private String formatRoute(String route) {
+		if (!route.startsWith("http://") && !route.startsWith("https://" ) ) {
+			if (this.getBaseUrl() != null) {
+				route = this.getBaseUrl() + route;
+			}
+		}
+		
+		return route;
 	}
 	
 	private String paramsToString(Map<String, Object> params) {
 		String paramsStr = "";
 		if (params != null) {
-			paramsStr += "?";
+			paramsStr += "";
 			try {
 				List<String> keys = new ArrayList<String>(params.keySet());
 				for (int i = 0; i < keys.size(); ++i) {

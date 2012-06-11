@@ -2,10 +2,15 @@ package com.joshdholtz.protocol.lib.helpers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,6 +40,7 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 
 	private HttpMethod method;
 	private String route;
+	private Map<String, String> headers;
 	private String contentType;
 	private HttpEntity entity;
 	private Timer timer;
@@ -47,8 +53,13 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	}
 	
 	public ProtocolConnectTask(HttpMethod method, String route, String contentType, HttpEntity entity, GotResponse handler) {
+		this(method, route, new HashMap<String, String>(), contentType, entity, handler);
+	}
+	
+	public ProtocolConnectTask(HttpMethod method, String route, Map<String, String> headers, String contentType, HttpEntity entity, GotResponse handler) {
 		this.method = method;
 		this.route = route;
+		this.headers = headers;
 		this.contentType = contentType;
 		this.entity = entity;
 		this.handler = handler;
@@ -93,7 +104,7 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 					httpUriRequest.addHeader("Content-Type", contentType);
 					
 					
-					
+				
 //					httpUriRequest.addHeader("Content-Length", String.valueOf(multi.forRealSize()));
 //					httpUriRequest.addHeader("Accept", "*/*");
 //					httpUriRequest.addHeader("Accept-Language", "en-us");
@@ -111,8 +122,15 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 				BasicNameValuePair header = Protocol.getInstance().getHeaders().get(i);
 				httpUriRequest.setHeader(header.getName(), header.getValue());
 			}
+		
+			Iterator<Entry<String,String>> it = headers.entrySet().iterator();
+		    while (it.hasNext()) {
+		        Entry<String,String> pairs = it.next();
+		        httpUriRequest.setHeader(pairs.getKey(), pairs.getValue());
+		        it.remove(); // avoids a ConcurrentModificationException
+		    }
 			
-			Log.d(ProtocolConstants.LOG_TAG, "URL - " + route);
+			Log.d(ProtocolConstants.LOG_TAG, method.toString() + " - " + route);
 			HttpResponse httpResponse = httpClient.execute(httpUriRequest);
 			
 			return httpResponse;
@@ -138,14 +156,18 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 		timer.cancel();
 		
 		if (this.isCancelled() || httpResponse == null) {
-			handler.handleResponse(null, -1, null);
+			String nullStr = null;
+			handler.handleResponse(null, -1, nullStr);
 		} else {
 			int status = httpResponse.getStatusLine().getStatusCode();
 			StringBuffer out = new StringBuffer();
 			
 			// Gets the input stream and unpackages the response into a command
+			InputStream in = null;
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+				in = httpResponse.getEntity().getContent();
+				
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 				String line = null;
 				while((line = reader.readLine()) != null){
 					out.append(line + "\n");
@@ -164,13 +186,15 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 		@Override
 		public void run() {
 			ProtocolConnectTask.this.cancel(true);
-			handler.handleResponse(null, -1, null);
+			String nullStr = null;
+			handler.handleResponse(null, -1, nullStr);
 		}
 		
 	}
 	
 	public abstract static class GotResponse {
 		public abstract void handleResponse(HttpResponse response, int status, String data);
+		public abstract void handleResponse(HttpResponse response, int status, InputStream in);
 	}
 
 }

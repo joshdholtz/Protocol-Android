@@ -7,6 +7,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
+
+import android.util.Log;
+
 public abstract class ProtocolModel {
 	
 	public static <T extends ProtocolModel>T createModel(Class<T> clazz, String jsonData) {
@@ -15,6 +19,7 @@ public abstract class ProtocolModel {
 			instance = clazz.newInstance();
 			instance.initFromJSONString(jsonData);
 		} catch (Exception e) {
+			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + " from " + jsonData);
 			e.printStackTrace();
 		}
 		
@@ -30,11 +35,16 @@ public abstract class ProtocolModel {
 				JSONObject object = array.getJSONObject(i);
 				
 				T instance = clazz.newInstance();
-				instance.initFromJSONObject(object);
+				boolean success = instance.initFromJSONObject(object);
 				
-				instances.add(instance);
+				if (success) {
+					instances.add(instance);
+				} else {
+					Log.w(ProtocolConstants.LOG_TAG, "Could not create " + clazz.getCanonicalName() + " from " + object.toString());
+				}
 			}
 		} catch (Exception e) {
+			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s from " + jsonData);
 			e.printStackTrace();
 		}
 		
@@ -54,7 +64,7 @@ public abstract class ProtocolModel {
 		
 		try {
 			JSONObject object = new JSONObject(jsonString);
-			this.initFromJSONObject(object);
+			success = this.initFromJSONObject(object);
 		} catch (JSONException e) {
 			success = false;
 			e.printStackTrace();
@@ -63,7 +73,9 @@ public abstract class ProtocolModel {
 		return success;
 	}
 	
-	public void initFromJSONObject(JSONObject object) {
+	public boolean initFromJSONObject(JSONObject object) {
+		boolean success = true;
+		
 		JSONArray names = object.names();
 		for (int i = 0; i < names.length(); ++i) {
 			try {
@@ -74,9 +86,12 @@ public abstract class ProtocolModel {
 				}
 				
 			} catch (JSONException e) {
+				success = false;
 				e.printStackTrace();
 			}
 		}
+		
+		return success;
 	}
 
 	public abstract void mapToClass(String key, Object value);
