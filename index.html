@@ -107,6 +107,8 @@
 				camel = camel.replace(/(\-[a-z])/g, function($1){return $1.toUpperCase().replace('-','');});
 				camel = camel.replace(/(\ [a-z])/g, function($1){return $1.toUpperCase().replace(' ','');});
 
+				camel = camel.charAt(0).toLowerCase() + camel.slice(1);
+
 				return camel;
 			};
 
@@ -142,7 +144,7 @@
 				};
 
 				this.mapKeysToProperties = function() {
-					return "@\"" + this.varName()  + "\",@\"" + this.name  + "\"";
+					return "@\"" + this.varName()  + "\",@\"" + this.name  + "\",";
 				}
 
 			}
