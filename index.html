@@ -169,10 +169,15 @@
 					this.jsonObject(attributes);
 				};
 
+				this.generate();
+
 			}
 
 			// Activates knockout.js
-			ko.applyBindings(new ViewModel());
+			var viewModel = new ViewModel();
+			ko.applyBindings(viewModel);
+
+			viewModel.generate();
 		})();
 
 	</script>
