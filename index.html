@@ -2,12 +2,155 @@
 
 	<head>
 		<title>Protocol Generator</title>
+		<script type='text/javascript' src='knockout-2.1.0.js'></script>
+
+
 	</head>
 
 	<body>
 
 		Protocol Generator
 
+		<div>
+
+			<input type="textfield" data-bind="value: modelName"></input>
+			<br/>
+			<textarea rows="20" cols="50" data-bind="value: json"></textarea>
+			<br/>
+			<input type="button" value="Generate" data-bind="click: generate"></input>
+		</div>
+
+		<div style="margin: 10px; padding: 10px; background-color: #EAEAEA;">
+
+			<div>
+				#import "<span data-bind="text: modelName">&nbsp;</span>.h"
+			</div>
+
+			<br/>
+
+			<div>
+				@interface <span data-bind="text: modelName">&nbsp;</span> : ProtocolObject
+			</div>
+
+			<br/>
+
+			<!-- ko foreach: jsonObject -->
+
+			<div data-bind="text: property()"></div>
+
+			<!-- /ko -->
+
+			<br/>
+
+			<div>
+				@end
+			</div>
+
+		</div>
+
+		<div style="margin: 10px; padding: 10px; background-color: #EAEAEA;">
+
+			<div>
+				#import "<span data-bind="text: modelName">&nbsp;</span>.h"
+			</div>
+
+			<br/>
+
+			<div>
+				@implementation <span data-bind="text: modelName">&nbsp;</span>
+			</div>
+
+			<br/>
+
+			<!-- ko foreach: jsonObject -->
+
+			<div data-bind="text: synthesize()"></div>
+
+			<!-- /ko -->
+
+			<br/>
+
+			<div>
+				@end
+			</div>
+
+		</div>
+
+
 	</body>
+
+	<script type="text/javascript">
+
+		(function() {
+
+			function Attribute(name, value) {
+
+				this.name = name;
+				this.value = value;
+
+				this.varName = function() {
+					var tempname = this.name.replace(/_/g, " ")
+					tempname = tempname.replace(/-/g, " ")
+
+					return ( /\S[A-Z]/.test( tempname ) ) ?
+					  tempname.replace( /(.)([A-Z])/g, function(t,a,b) { return a + ' ' + b.toLowerCase(); } ) :
+					    tempname.replace( /( )([a-z])/g, function(t,a,b) { return b.toUpperCase(); } );
+				};
+
+
+				this.property = function() {
+
+					var varName = this.varName();
+
+					if (typeof(value) == "string") {
+						return "@property (nonatomic, strong) NSString *" + varName + ";";	
+					} else if (typeof(value) == "number") {
+						return "@property (nonatomic, strong) NSNumber *" + varName + ";";	
+					} else if (typeof(value) == "boolean") {
+						return "@property (nonatomic, assign) BOOL " + varName + ";";	
+					}
+
+				};
+
+				this.synthesize = function() {
+
+					var varName = this.varName();
+
+					return "@synthesize " + varName + " = _" + varName + ";"; 
+
+				};
+
+
+			}
+
+			function ViewModel() {
+
+				this.modelName = ko.observable("ModelName");
+
+				this.json = ko.observable('{"hey":"you", "age":5,"cool":true}');
+				this.jsonObject = ko.observableArray();
+
+				this.generate = function() {
+					var jsonEvaled = eval('(' + this.json() + ')');
+					if (jsonEvaled == null) {
+						return null;
+					}
+
+					var attributes = [];
+					for (var key in jsonEvaled) {
+						var attribute = new Attribute(key, jsonEvaled[key]);
+						attributes.push(attribute);
+					}
+
+					this.jsonObject(attributes);
+				};
+
+			}
+
+			// Activates knockout.js
+			ko.applyBindings(new ViewModel());
+		})();
+
+	</script>
 
 </html>
