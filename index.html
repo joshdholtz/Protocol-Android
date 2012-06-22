@@ -70,6 +70,21 @@
 
 			<br/>
 
+			- (NSDictionary *)mapKeysToProperties {
+			<br/>
+			return [[NSDictionary alloc] initWithObjectsAndKeys:
+			<br/>
+
+			<!-- ko foreach: jsonObject -->
+			<div data-bind="text: mapKeysToProperties()"></div>
+			<!-- /ko -->
+
+			<br/>
+			nil];
+			<br/>
+			}
+			<br/>
+
 			<div>
 				@end
 			</div>
@@ -83,20 +98,26 @@
 
 		(function() {
 
+		 	String.prototype.toProperCase = function () {
+				return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+			};
+
+			String.prototype.toCamel = function () {
+				var camel = this.replace(/(\_[a-z])/g, function($1){return $1.toUpperCase().replace('_','');});
+				camel = camel.replace(/(\-[a-z])/g, function($1){return $1.toUpperCase().replace('-','');});
+				camel = camel.replace(/(\ [a-z])/g, function($1){return $1.toUpperCase().replace(' ','');});
+
+				return camel;
+			};
+
 			function Attribute(name, value) {
 
 				this.name = name;
 				this.value = value;
 
 				this.varName = function() {
-					var tempname = this.name.replace(/_/g, " ")
-					tempname = tempname.replace(/-/g, " ")
-
-					return ( /\S[A-Z]/.test( tempname ) ) ?
-					  tempname.replace( /(.)([A-Z])/g, function(t,a,b) { return a + ' ' + b.toLowerCase(); } ) :
-					    tempname.replace( /( )([a-z])/g, function(t,a,b) { return b.toUpperCase(); } );
+					return this.name.toCamel();
 				};
-
 
 				this.property = function() {
 
@@ -120,6 +141,9 @@
 
 				};
 
+				this.mapKeysToProperties = function() {
+					return "@\"" + this.varName()  + "\",@\"" + this.name  + "\"";
+				}
 
 			}
 
