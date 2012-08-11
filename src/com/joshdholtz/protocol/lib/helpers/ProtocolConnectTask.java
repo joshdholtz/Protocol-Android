@@ -44,31 +44,33 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	private String contentType;
 	private HttpEntity entity;
 	private Timer timer;
+	private int timeout;
 	private GotResponse handler;
 	
 	private HttpUriRequest httpUriRequest;
 	
-	public ProtocolConnectTask(HttpMethod method, String route, HttpEntity entity, GotResponse handler) {
-		this(method, route, null, entity, handler);
+	public ProtocolConnectTask(HttpMethod method, String route, HttpEntity entity, int timeout, GotResponse handler) {
+		this(method, route, null, entity, timeout, handler);
 	}
 	
-	public ProtocolConnectTask(HttpMethod method, String route, String contentType, HttpEntity entity, GotResponse handler) {
-		this(method, route, new HashMap<String, String>(), contentType, entity, handler);
+	public ProtocolConnectTask(HttpMethod method, String route, String contentType, HttpEntity entity, int timeout, GotResponse handler) {
+		this(method, route, new HashMap<String, String>(), contentType, entity, timeout, handler);
 	}
 	
-	public ProtocolConnectTask(HttpMethod method, String route, Map<String, String> headers, String contentType, HttpEntity entity, GotResponse handler) {
+	public ProtocolConnectTask(HttpMethod method, String route, Map<String, String> headers, String contentType, HttpEntity entity, int timeout, GotResponse handler) {
 		this.method = method;
 		this.route = route;
 		this.headers = headers;
 		this.contentType = contentType;
 		this.entity = entity;
+		this.timeout = timeout;
 		this.handler = handler;
 	}
 	
 	@Override
 	protected void onPreExecute() {
 		timer = new Timer();
-		timer.schedule(new ConnectTimerTask(), 100000);
+		timer.schedule(new ConnectTimerTask(), timeout);
 	}
 	
 	@Override

@@ -41,11 +41,15 @@ public class Protocol {
 	private String baseUrl;
 	private Map<String, BasicNameValuePair> headers;
 	
+	private int timeout;
+	
 	private boolean debug;
 	
 	private Protocol() {
 		baseUrl = null;
 		headers = new HashMap<String, BasicNameValuePair>();
+		
+		timeout = 30000;
 		
 		debug = false;
 	}
@@ -99,6 +103,20 @@ public class Protocol {
 		return new ArrayList<BasicNameValuePair>(headers.values());
 	}
 	
+	/**
+	 * @return the timeout
+	 */
+	public int getTimeout() {
+		return timeout;
+	}
+
+	/**
+	 * @param timeout the timeout to set
+	 */
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
 	/**
 	 * @return the debug
 	 */
@@ -162,7 +180,7 @@ public class Protocol {
 		route = this.formatRoute(route);
 		route = route + this.paramsToString(params);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, contentType, null, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, contentType, null, timeout, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -267,7 +285,7 @@ public class Protocol {
 			}
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, headers, contentType, entity, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, headers, contentType, entity, timeout, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -307,7 +325,7 @@ public class Protocol {
 			e.printStackTrace();
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, contentType, entity, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, contentType, entity, timeout, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -381,7 +399,7 @@ public class Protocol {
 			}
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, timeout, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -421,7 +439,7 @@ public class Protocol {
 			e.printStackTrace();
 		}
 
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, timeout, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -480,7 +498,7 @@ public class Protocol {
 		route = this.formatRoute(route);
 		route = route + this.paramsToString(params);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, contentType, null, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, contentType, null, timeout, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
@@ -535,7 +553,7 @@ public class Protocol {
 		
 		ProtocolMultipartEntity entity = new ProtocolMultipartEntity(boundary, params, files);
 		Log.d(ProtocolConstants.LOG_TAG, "Size - " + entity.forRealSize());
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST_FILE, route, contentType, entity, new GotResponse() {
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST_FILE, route, contentType, entity, timeout, new GotResponse() {
 
 			@Override
 			public void handleResponse(HttpResponse response, int status, String data) {
