@@ -157,6 +157,8 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	protected void onPostExecute(HttpResponse httpResponse) {
 		timer.cancel();
 		
+		Protocol.getInstance().finishedProtocolConnectTask();
+		
 		if (this.isCancelled() || httpResponse == null) {
 			String nullStr = null;
 			handler.handleResponse(null, -1, nullStr);

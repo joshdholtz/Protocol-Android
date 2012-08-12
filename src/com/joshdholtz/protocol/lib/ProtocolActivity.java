@@ -55,6 +55,11 @@ public class ProtocolActivity extends Activity {
 		/*
 		 * Shows how to do a simple GET request to get a bitmap
 		 */
+		Protocol.getInstance().setMaxAsyncCount(1);
+		this.getBitmap();
+		this.getBitmap();
+		this.getBitmap();
+		this.getBitmap();
 		this.getBitmap();
 		
 	}

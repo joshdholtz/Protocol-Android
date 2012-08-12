@@ -3,24 +3,38 @@ package com.joshdholtz.protocol.lib.helpers;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.http.HttpResponse;
 
+import com.joshdholtz.protocol.lib.Protocol;
 import com.joshdholtz.protocol.lib.ProtocolBitmapResponse;
+import com.joshdholtz.protocol.lib.helpers.ProtocolConnectTask.ConnectTimerTask;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 
-	String url;
+	private String url;
+	private int timeout;
+	private Timer timer;
 	
-	ProtocolBitmapResponse responseHandler;
+	private ProtocolBitmapResponse responseHandler;
 	
-	public ProtocolConnectBitmapTask(String url, ProtocolBitmapResponse responseHandler) {
+	public ProtocolConnectBitmapTask(String url, int timeout, ProtocolBitmapResponse responseHandler) {
 		this.url = url;
+		this.timeout = timeout;
 		this.responseHandler = responseHandler;
+	}
+	
+	@Override
+	protected void onPreExecute() {
+		timer = new Timer();
+		timer.schedule(new ConnectTimerTask(), timeout);
 	}
 	
 	@Override
@@ -40,8 +54,31 @@ public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 	
 	@Override
 	protected void onPostExecute(Bitmap bitmap) {
+		timer.cancel();
 		
-		this.responseHandler.handleResponse(bitmap);
+		Protocol.getInstance().finishedProtocolConnectTask();
+		
+		if (this.isCancelled() || bitmap == null) {
+			if (Protocol.getInstance().isDebug()) {
+				Log.d(ProtocolConstants.LOG_TAG, "Bitmap - not retrieved");
+			}
+			responseHandler.handleResponse(null);
+		} else {
+			if (Protocol.getInstance().isDebug()) {
+				Log.d(ProtocolConstants.LOG_TAG, "Bitmap - retrieved");
+			}
+			this.responseHandler.handleResponse(bitmap);
+		}
+			
+	}
+	
+	class ConnectTimerTask extends TimerTask {
+
+		@Override
+		public void run() {
+			ProtocolConnectBitmapTask.this.cancel(true);
+			responseHandler.handleResponse(null);
+		}
 		
 	}
 

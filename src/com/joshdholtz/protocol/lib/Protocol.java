@@ -1,16 +1,14 @@
 package com.joshdholtz.protocol.lib;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -21,10 +19,9 @@ import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.joshdholtz.protocol.lib.helpers.ProtocolConnectBitmapTask;
@@ -43,6 +40,11 @@ public class Protocol {
 	
 	private int timeout;
 	
+	private int maxAsyncCount;
+	
+	private int runningCount;
+	private LinkedList queue;
+	
 	private boolean debug;
 	
 	private Protocol() {
@@ -50,6 +52,11 @@ public class Protocol {
 		headers = new HashMap<String, BasicNameValuePair>();
 		
 		timeout = 30000;
+		
+		maxAsyncCount = 15;
+		
+		runningCount = 0;
+		queue = new LinkedList();
 		
 		debug = false;
 	}
@@ -115,6 +122,20 @@ public class Protocol {
 	 */
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
+	}
+
+	/**
+	 * @return the maxAsyncCount
+	 */
+	public int getMaxAsyncCount() {
+		return maxAsyncCount;
+	}
+
+	/**
+	 * @param maxAsyncCount the maxAsyncCount to set
+	 */
+	public void setMaxAsyncCount(int maxAsyncCount) {
+		this.maxAsyncCount = maxAsyncCount;
 	}
 
 	/**
@@ -197,7 +218,7 @@ public class Protocol {
 			}
 			
 		});
-		task.execute();
+		this.executeProtocolConnectTask(task);
 	}
 	
 	/**
@@ -211,9 +232,8 @@ public class Protocol {
 	public void doGetBitmap(String route, final ProtocolBitmapResponse responseHandler) {
 		route = this.formatRoute(route);
 		
-		ProtocolConnectBitmapTask task = new ProtocolConnectBitmapTask(route, responseHandler);
-		task.execute();
-		
+		ProtocolConnectBitmapTask task = new ProtocolConnectBitmapTask(route, timeout, responseHandler);
+		this.executeProtocolConnectTask(task);
 	}
 	
 	/**
@@ -302,7 +322,7 @@ public class Protocol {
 			}
 			
 		});
-		task.execute();
+		this.executeProtocolConnectTask(task);
 	}
 	
 	/**
@@ -342,7 +362,7 @@ public class Protocol {
 			}
 			
 		});
-		task.execute();
+		this.executeProtocolConnectTask(task);
 	}
 	
 	/**
@@ -416,7 +436,7 @@ public class Protocol {
 			}
 			
 		});
-		task.execute();
+		this.executeProtocolConnectTask(task);
 	}
 	
 	/**
@@ -456,7 +476,7 @@ public class Protocol {
 			}
 			
 		});
-		task.execute();
+		this.executeProtocolConnectTask(task);
 	}
 	
 	/**
@@ -515,7 +535,7 @@ public class Protocol {
 			}
 			
 		});
-		task.execute();
+		this.executeProtocolConnectTask(task);
 	}
 	
 	/**
@@ -570,7 +590,51 @@ public class Protocol {
 			}
 			
 		});
-		task.execute();
+		this.executeProtocolConnectTask(task);
+	}
+	
+	private void executeProtocolConnectTask(AsyncTask task) {
+		synchronized (this) {
+			
+			if (runningCount >= maxAsyncCount ) {
+				queue.add(task);
+				
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "Queueing task");
+					Log.d(ProtocolConstants.LOG_TAG, "Running count - " + runningCount + ", Queue count - " + queue.size());
+				}
+			} else {
+				runningCount++;
+				task.execute(null);
+				
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "Running count - " + runningCount + ", Queue count - " + queue.size());
+				}
+			}
+		}
+	}
+	
+	public void finishedProtocolConnectTask() {
+		synchronized (this) {
+			runningCount--;
+			if (debug) {
+				Log.d(ProtocolConstants.LOG_TAG, "Running count - " + runningCount + ", Queue count - " + queue.size());
+			}
+			
+			if (!queue.isEmpty()) {
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "Popping task");
+				}
+				AsyncTask task = (AsyncTask) queue.removeFirst();
+				
+				runningCount++;
+				task.execute(null);
+				
+				if (debug) {
+					Log.d(ProtocolConstants.LOG_TAG, "Running count - " + runningCount + ", Queue count - " + queue.size());
+				}
+			}
+		}
 	}
 	
 	private String formatRoute(String route) {
