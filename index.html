@@ -12,7 +12,8 @@
 		Protocol Generator
 
 		<div>
-
+			<select data-bind="options: availableLanguages, value: selectedLanguage"></select>
+			<br/>
 			<input type="textfield" data-bind="value: modelName"></input>
 			<br/>
 			<textarea rows="20" cols="50" data-bind="value: json"></textarea>
@@ -20,6 +21,7 @@
 			<input type="button" value="Generate" data-bind="click: generate"></input>
 		</div>
 
+		<!-- ko if: selectedLanguage() == 'iOS' -->
 		<div style="margin: 10px; padding: 10px; background-color: #EAEAEA;">
 
 			<div>
@@ -91,6 +93,72 @@
 
 		</div>
 
+		<!-- /ko -->
+
+		<!-- ko if: selectedLanguage() == 'Android' -->
+		<div style="margin: 10px; padding: 10px; background-color: #EAEAEA;">
+
+			<div>
+				public class <span data-bind="text: modelName">&nbsp;</span> extends ProtocolModel {
+			</div>
+
+			<br/>
+
+			<!-- ko foreach: jsonObject -->
+
+			<div data-bind="text: classVariables()"></div>
+
+			<!-- /ko -->
+
+			<br/>
+
+			<div>
+				public <span data-bind="text: modelName">&nbsp;</span>() {
+				<br/>
+					super();
+					<br/>
+				}
+				<br/>
+
+				<br/>
+				public <span data-bind="text: modelName">&nbsp;</span>(JSONObject jsonObject) {
+				<br/>
+					super(jsonObject);
+					<br/>
+				}
+				<br/>
+			</div>
+
+			<br/>
+
+			<div>
+				@Override
+				<br/>
+				public void mapToClass(String key, Object value) {
+				<br/>
+
+					<!-- ko foreach: jsonObject -->
+
+					<span data-bind="text: ($index() == 0 ? 'if ' : ' else if ')"></span> (key.equals("<span data-bind="text: name"></span>")) {
+					<br/>
+						<span data-bind="text: setClassVariable()"></span>
+						<br/>
+					}
+
+					<!-- /ko -->
+					<br/>
+				}
+				<br/>
+			</div>
+
+			<div>
+				<br/>
+				}
+			</div>
+
+		</div>
+
+		<!-- /ko -->
 
 	</body>
 
@@ -147,9 +215,52 @@
 					return "@\"" + this.varName()  + "\",@\"" + this.name  + "\",";
 				}
 
+				this.classVariables = function() {
+
+					var varName = this.varName();
+
+					if (typeof(value) == "string") {
+						return "private String " + varName + ";";	
+					} else if (typeof(value) == "number") {
+
+						if (value % 1 === 0) {
+							return "private int " + varName + ";"
+						} else {
+							return "private double " + varName + ";"
+						}
+
+					} else if (typeof(value) == "boolean") {
+						return "private boolean " + varName + ";";	
+					}
+
+				};
+
+				this.setClassVariable = function() {
+
+					var varName = this.varName();
+
+					if (typeof(value) == "string") {
+						return "this." + varName + " = (String)value;";	
+					} else if (typeof(value) == "number") {
+
+						if (value % 1 === 0) {
+							return "this." + varName + " = (Integer)value;";	
+						} else {
+							return "this." + varName + " = Double.parseDouble(value.toString());";	
+						}
+
+					} else if (typeof(value) == "boolean") {
+						return "this." + varName + " = (Boolean)value;";		
+					}
+
+				};
+
 			}
 
 			function ViewModel() {
+
+				this.availableLanguages = ko.observableArray(['iOS', 'Android']);
+				this.selectedLanguage = ko.observable();
 
 				this.modelName = ko.observable("ModelName");
 
