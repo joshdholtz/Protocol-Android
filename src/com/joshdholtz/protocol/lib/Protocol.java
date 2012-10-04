@@ -23,6 +23,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.joshdholtz.protocol.lib.helpers.ProtocolConnectBitmapTask;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConnectTask;
@@ -47,6 +48,8 @@ public class Protocol {
 	
 	private boolean debug;
 	
+	private SparseArray<ProtocolStatusListener> observedStatuses;
+	
 	private Protocol() {
 		baseUrl = null;
 		headers = new HashMap<String, BasicNameValuePair>();
@@ -59,6 +62,8 @@ public class Protocol {
 		queue = new LinkedList();
 		
 		debug = false;
+		
+		observedStatuses = new SparseArray<ProtocolStatusListener>();
 	}
 	
 	public static Protocol getInstance() {
@@ -162,6 +167,14 @@ public class Protocol {
 	    return activeNetworkInfo != null;
 	}
 	
+	public void observeStatus(int status, ProtocolStatusListener listener) {
+		this.observedStatuses.put(status, listener);
+	}
+	
+	public void removeObserveStatus(int status) {
+		this.observedStatuses.remove(status);
+	}
+	
 	/**
 	 * Performs a GET request with no params.
 	 * 
@@ -201,23 +214,7 @@ public class Protocol {
 		route = this.formatRoute(route);
 		route = route + this.paramsToString(params);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, contentType, null, timeout, new GotResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				if (debug) {
-					Log.d(ProtocolConstants.LOG_TAG, "GET - " + status + ", " + data);
-				}
-				
-				responseHandler.handleResponse(response, status, data);
-			}
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, InputStream in) {
-				
-			}
-			
-		});
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, contentType, null, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -305,23 +302,7 @@ public class Protocol {
 			}
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, headers, contentType, entity, timeout, new GotResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				if (debug) {
-					Log.d(ProtocolConstants.LOG_TAG, "POST - " + status + ", " + data);
-				}
-				
-				responseHandler.handleResponse(response, status, data);
-			}
-			
-			@Override
-			public void handleResponse(HttpResponse response, int status, InputStream in) {
-				
-			}
-			
-		});
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, headers, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -345,23 +326,7 @@ public class Protocol {
 			e.printStackTrace();
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, contentType, entity, timeout, new GotResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				if (debug) {
-					Log.d(ProtocolConstants.LOG_TAG, "POST - " + status + ", " + data);
-				}
-				
-				responseHandler.handleResponse(response, status, data);
-			}
-			
-			@Override
-			public void handleResponse(HttpResponse response, int status, InputStream in) {
-				
-			}
-			
-		});
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -419,23 +384,7 @@ public class Protocol {
 			}
 		}
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, timeout, new GotResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				if (debug) {
-					Log.d(ProtocolConstants.LOG_TAG, "PUT - " + status + ", " + data);
-				}
-				
-				responseHandler.handleResponse(response, status, data);
-			}
-			
-			@Override
-			public void handleResponse(HttpResponse response, int status, InputStream in) {
-				
-			}
-			
-		});
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -459,23 +408,7 @@ public class Protocol {
 			e.printStackTrace();
 		}
 
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, timeout, new GotResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				if (debug) {
-					Log.d(ProtocolConstants.LOG_TAG, "PUT - " + status + ", " + data);
-				}
-				
-				responseHandler.handleResponse(response, status, data);
-			}
-			
-			@Override
-			public void handleResponse(HttpResponse response, int status, InputStream in) {
-				
-			}
-			
-		});
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -518,23 +451,7 @@ public class Protocol {
 		route = this.formatRoute(route);
 		route = route + this.paramsToString(params);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, contentType, null, timeout, new GotResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				if (debug) {
-					Log.d(ProtocolConstants.LOG_TAG, "DELETE - " + status + ", " + data);
-				}
-				
-				responseHandler.handleResponse(response, status, data);
-			}
-			
-			@Override
-			public void handleResponse(HttpResponse response, int status, InputStream in) {
-				
-			}
-			
-		});
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, contentType, null, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -573,24 +490,40 @@ public class Protocol {
 		
 		ProtocolMultipartEntity entity = new ProtocolMultipartEntity(boundary, params, files);
 		Log.d(ProtocolConstants.LOG_TAG, "Size - " + entity.forRealSize());
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST_FILE, route, contentType, entity, timeout, new GotResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				if (debug) {
-					Log.d(ProtocolConstants.LOG_TAG, "POST FILE - " + status + ", " + data);
-				}
-				
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST_FILE, route, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
+		this.executeProtocolConnectTask(task);
+	}
+	
+	private class ProtocolGotResponse extends GotResponse {
+		
+		private ProtocolResponse responseHandler;
+		
+		public ProtocolGotResponse(ProtocolResponse responseHandler) {
+			this.responseHandler = responseHandler;
+		}
+		
+		@Override
+		public void handleResponse(HttpResponse response, int status, String data) {
+			if (debug) {
+				Log.d(ProtocolConstants.LOG_TAG, "POST - " + status + ", " + data);
+			}
+			
+			boolean executeHandler = true;
+			ProtocolStatusListener statusListener = observedStatuses.get(status);
+			if (statusListener != null) {
+				executeHandler = statusListener.observedStatus(status);
+			}
+			
+			if (executeHandler) {
 				responseHandler.handleResponse(response, status, data);
 			}
+		}
+		
+		@Override
+		public void handleResponse(HttpResponse response, int status, InputStream in) {
 			
-			@Override
-			public void handleResponse(HttpResponse response, int status, InputStream in) {
-				
-			}
-			
-		});
-		this.executeProtocolConnectTask(task);
+		}
+		
 	}
 	
 	private void executeProtocolConnectTask(AsyncTask task) {
@@ -676,6 +609,10 @@ public class Protocol {
 		}
 		
 		return nameValuePair;
+	}
+	
+	public interface ProtocolStatusListener {
+		public boolean observedStatus(int status);
 	}
 	
 }
