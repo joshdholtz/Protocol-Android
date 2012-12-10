@@ -1,5 +1,7 @@
 package com.joshdholtz.protocol.lib.test;
 
+import java.util.Map;
+
 import org.json.JSONObject;
 
 import com.joshdholtz.protocol.lib.ProtocolModel;
@@ -27,5 +29,11 @@ public class MemberModel extends ProtocolModel {
 			this.lastName = (String) value;
 		}
 	}
+
+//	@Override
+//	public Map<String, String> getKeyToVariableMap() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }

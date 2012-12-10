@@ -1,7 +1,9 @@
 package com.joshdholtz.protocol.lib;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,6 +46,7 @@ public abstract class ProtocolModel {
 				}
 			}
 		} catch (Exception e) {
+			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s - " + e.getClass() + " " + e.getMessage());
 			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s from " + jsonData);
 			e.printStackTrace();
 		}
@@ -83,11 +86,36 @@ public abstract class ProtocolModel {
 				String key = names.getString(i);
 				if (!object.isNull(key)) {
 					this.mapToClass(key, object.get(key));
+				
+					Log.d(ProtocolConstants.LOG_TAG, "Value of " + key);
+//					if (this.getKeyToVariableMap() != null) {
+//						String variable = this.getKeyToVariableMap().get(key);
+//						
+//						Class c = this.getClass();
+//	 
+//						try {
+//				        	Field field = c.getDeclaredField(variable);
+//						} catch (Exception e) {
+//							
+//						}
+//	 
+////				        field.setAccessible(true);
+////				        Log.d(ProtocolConstants.LOG_TAG, "Value of " + variable + ": " + field.get(this));
+//	
+//					}
 				}
 				
 			} catch (JSONException e) {
 				success = false;
 				e.printStackTrace();
+			} catch (SecurityException e) {
+				e.printStackTrace();
+//			} catch (NoSuchFieldException e) {
+//				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+//			} catch (IllegalAccessException e) {
+//				e.printStackTrace();
 			}
 		}
 		
@@ -95,5 +123,6 @@ public abstract class ProtocolModel {
 	}
 
 	public abstract void mapToClass(String key, Object value);
+//	public abstract Map<String, String> getKeyToVariableMap();
 	
 }

@@ -34,6 +34,7 @@ import com.joshdholtz.protocol.lib.ProtocolMultipartEntity;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
 
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
 
 public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
@@ -48,6 +49,11 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	private GotResponse handler;
 	
 	private HttpUriRequest httpUriRequest;
+	
+	private int status;
+	private String stringResp;
+	
+	private Handler threadHandler = new Handler();
 	
 	public ProtocolConnectTask(HttpMethod method, String route, HttpEntity entity, int timeout, GotResponse handler) {
 		this(method, route, null, entity, timeout, handler);
@@ -135,6 +141,28 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 			Log.d(ProtocolConstants.LOG_TAG, method.toString() + " - " + route);
 			HttpResponse httpResponse = httpClient.execute(httpUriRequest);
 			
+			status = httpResponse.getStatusLine().getStatusCode();
+			StringBuffer out = new StringBuffer();
+			
+			// Gets the input stream and unpackages the response into a command
+			if (httpResponse.getEntity() != null) {
+				try {
+					InputStream in = httpResponse.getEntity().getContent();
+					
+					BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+					String line = null;
+					while((line = reader.readLine()) != null){
+						out.append(line + "\n");
+					}
+					reader.close();
+					
+					stringResp = out.toString();
+					
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
 			return httpResponse;
 
 //			return command.unpackageJSON(out.toString());
@@ -149,6 +177,9 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	protected void onCancelled() {
 		if (httpUriRequest != null) {
 			httpUriRequest.abort();
+			
+			String nullStr = null;
+			handler.handleResponse(null, -1, nullStr);
 			Log.d("", "ServerConnect - aborting request from cancel");
 		}
 	}
@@ -161,27 +192,9 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 		
 		if (this.isCancelled() || httpResponse == null) {
 			String nullStr = null;
-			handler.handleResponse(null, -1, nullStr);
+			handler.handleResponse(null, status, nullStr);
 		} else {
-			int status = httpResponse.getStatusLine().getStatusCode();
-			StringBuffer out = new StringBuffer();
-			
-			// Gets the input stream and unpackages the response into a command
-			InputStream in = null;
-			try {
-				in = httpResponse.getEntity().getContent();
-				
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-				String line = null;
-				while((line = reader.readLine()) != null){
-					out.append(line + "\n");
-				}
-				reader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-			handler.handleResponse(httpResponse, status, out.toString());
+			handler.handleResponse(httpResponse, status, stringResp);
 		}
 	}
 	
@@ -190,8 +203,6 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 		@Override
 		public void run() {
 			ProtocolConnectTask.this.cancel(true);
-			String nullStr = null;
-			handler.handleResponse(null, -1, nullStr);
 		}
 		
 	}

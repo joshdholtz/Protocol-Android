@@ -10,6 +10,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.joshdholtz.protocol.lib.R;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
@@ -39,7 +40,7 @@ public class ProtocolActivity extends Activity {
 
 		img = (ImageView) this.findViewById(R.id.img);
 		
-		Protocol.getInstance().setBaseUrl("http://joshdholtz.com");
+		Protocol.getInstance().setBaseUrl("http://192.168.0.134:3000");
 		Protocol.getInstance().setDebug(true);
 
 		/*
@@ -55,12 +56,39 @@ public class ProtocolActivity extends Activity {
 		/*
 		 * Shows how to do a simple GET request to get a bitmap
 		 */
-		Protocol.getInstance().setMaxAsyncCount(1);
-		this.getBitmap();
-		this.getBitmap();
-		this.getBitmap();
-		this.getBitmap();
-		this.getBitmap();
+//		Protocol.getInstance().setMaxAsyncCount(1);
+//		this.getBitmap();
+//		this.getBitmap();
+//		this.getBitmap();
+//		this.getBitmap();
+//		this.getBitmap();
+		
+		JSONObject body = new JSONObject();
+		try {
+			body.put("email", "nick.gartmann@gmail.com");
+			body.put("password", "Mclblko3");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Protocol.getInstance().doPost("/session", body, Protocol.CONTENT_TYPE_JSON, new ProtocolResponse() {
+
+			@Override
+			public void handleResponse(HttpResponse response, int status, String data) {
+				
+			}
+			
+		});
+		
+//		Protocol.getInstance().doGet("/304", new ProtocolResponse() {
+//
+//			@Override
+//			public void handleResponse(HttpResponse response, int status, String data) {
+//				Log.d(ProtocolConstants.LOG_TAG, "Status - " + status);
+//			}
+//			
+//		});
 		
 	}
 	
@@ -193,19 +221,19 @@ public class ProtocolActivity extends Activity {
 	
 	private void getBitmap() {
 		
-		Protocol.getInstance().doGetBitmap("http://images2.fanpop.com/images/photos/6900000/cute-kitten-cats-6987468-670-578.jpg", new ProtocolBitmapResponse() {
-
-			@Override
-			public void handleResponse(Bitmap bitmap) {
-				
-				if (bitmap != null) {
-					img.setImageBitmap(bitmap);
-					Toast.makeText(ProtocolActivity.this, "Meow - " + bitmap.getWidth() + " x " + bitmap.getHeight(), Toast.LENGTH_LONG).show();
-				}
-				
-			}
-			
-		});
+//		Protocol.getInstance().doGetBitmap("http://images2.fanpop.com/images/photos/6900000/cute-kitten-cats-6987468-670-578.jpg", new ProtocolBitmapResponse() {
+//
+//			@Override
+//			public void handleResponse(Bitmap bitmap) {
+//				
+//				if (bitmap != null) {
+//					img.setImageBitmap(bitmap);
+//					Toast.makeText(ProtocolActivity.this, "Meow - " + bitmap.getWidth() + " x " + bitmap.getHeight(), Toast.LENGTH_LONG).show();
+//				}
+//				
+//			}
+//			
+//		});
 		
 	}
 

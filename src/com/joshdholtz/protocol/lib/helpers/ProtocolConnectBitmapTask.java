@@ -20,13 +20,15 @@ import android.util.Log;
 public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 
 	private String url;
+	private String imageViewTag;
 	private int timeout;
 	private Timer timer;
 	
 	private ProtocolBitmapResponse responseHandler;
 	
-	public ProtocolConnectBitmapTask(String url, int timeout, ProtocolBitmapResponse responseHandler) {
+	public ProtocolConnectBitmapTask(String url, String imageViewTag, int timeout, ProtocolBitmapResponse responseHandler) {
 		this.url = url;
+		this.imageViewTag = imageViewTag;
 		this.timeout = timeout;
 		this.responseHandler = responseHandler;
 	}
@@ -39,6 +41,16 @@ public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 	
 	@Override
 	protected Bitmap doInBackground(Void... arg0) {
+		
+//		if (Protocol.getInstance().getBitmapCache() != null) {
+//			if (Protocol.getInstance().getBitmapCache().containsKey(url)) {
+//				Log.d(ProtocolConstants.LOG_TAG, "Loading image from cache - " + url);
+//				return Protocol.getInstance().getBitmapCache().getCachedBitmap(url);
+//			} else {
+//				Log.d(ProtocolConstants.LOG_TAG, "Image from cache - " + url);
+//			}
+//		}
+		
 		URL newurl = null;
 		Bitmap bitmap = null;
 		try {
@@ -49,6 +61,11 @@ public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+//		if (Protocol.getInstance().getBitmapCache() != null) {
+//			Protocol.getInstance().getBitmapCache().addBitmapToCache(url, bitmap);
+//		}
+		
 		return bitmap;
 	}
 	
@@ -62,12 +79,12 @@ public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 			if (Protocol.getInstance().isDebug()) {
 				Log.d(ProtocolConstants.LOG_TAG, "Bitmap - not retrieved");
 			}
-			responseHandler.handleResponse(null);
+			responseHandler.handleResponse(imageViewTag, null);
 		} else {
 			if (Protocol.getInstance().isDebug()) {
 				Log.d(ProtocolConstants.LOG_TAG, "Bitmap - retrieved");
 			}
-			this.responseHandler.handleResponse(bitmap);
+			this.responseHandler.handleResponse(imageViewTag, bitmap);
 		}
 			
 	}
@@ -77,7 +94,7 @@ public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 		@Override
 		public void run() {
 			ProtocolConnectBitmapTask.this.cancel(true);
-			responseHandler.handleResponse(null);
+			responseHandler.handleResponse(imageViewTag, null);
 		}
 		
 	}

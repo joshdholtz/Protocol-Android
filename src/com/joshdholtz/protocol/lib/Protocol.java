@@ -43,6 +43,8 @@ public class Protocol {
 	
 	private int maxAsyncCount;
 	
+//	private ProtocolBitmapCache bitmapCache;
+	
 	private int runningCount;
 	private LinkedList queue;
 	
@@ -142,6 +144,24 @@ public class Protocol {
 	public void setMaxAsyncCount(int maxAsyncCount) {
 		this.maxAsyncCount = maxAsyncCount;
 	}
+	
+	public void clearQueue() {
+		this.queue.clear();
+	}
+
+//	/**
+//	 * @return the bitmapCache
+//	 */
+//	public ProtocolBitmapCache getBitmapCache() {
+//		return bitmapCache;
+//	}
+//
+//	/**
+//	 * @param bitmapCache the bitmapCache to set
+//	 */
+//	public void setBitmapCache(ProtocolBitmapCache bitmapCache) {
+//		this.bitmapCache = bitmapCache;
+//	}
 
 	/**
 	 * @return the debug
@@ -218,6 +238,14 @@ public class Protocol {
 		this.executeProtocolConnectTask(task);
 	}
 	
+	public void doGet(String route, Map<String,String> headers, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
+		route = this.formatRoute(route);
+		route = route + this.paramsToString(params);
+		
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, headers, contentType, null, timeout, new ProtocolGotResponse(responseHandler));
+		this.executeProtocolConnectTask(task);
+	}
+	
 	/**
 	 * Performs a GET request with no params.
 	 * 
@@ -226,10 +254,10 @@ public class Protocol {
 	 * @param route
 	 * @param responseHandler
 	 */
-	public void doGetBitmap(String route, final ProtocolBitmapResponse responseHandler) {
+	public void doGetBitmap(String route, String imageViewTag, final ProtocolBitmapResponse responseHandler) {
 		route = this.formatRoute(route);
 		
-		ProtocolConnectBitmapTask task = new ProtocolConnectBitmapTask(route, timeout, responseHandler);
+		ProtocolConnectBitmapTask task = new ProtocolConnectBitmapTask(route, imageViewTag, timeout, responseHandler);
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -388,6 +416,29 @@ public class Protocol {
 		this.executeProtocolConnectTask(task);
 	}
 	
+	public void doPut(String route, Map<String, String> headers, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
+		route = this.formatRoute(route);
+		
+		HttpEntity entity = null;
+		if (Protocol.CONTENT_TYPE_JSON.equals(contentType)) {
+			try {
+				JSONObject jsonObject = new JSONObject(params);
+				entity = new StringEntity(jsonObject.toString());
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				entity = new UrlEncodedFormEntity(this.paramsToValuePairs(params), HTTP.UTF_8);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, headers, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
+		this.executeProtocolConnectTask(task);
+	}
+	
 	/**
 	 * Performs a PUT request with params.
 	 * 
@@ -409,6 +460,20 @@ public class Protocol {
 		}
 
 		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
+		this.executeProtocolConnectTask(task);
+	}
+	
+	public void doPut(String route, Map<String, String> headers, JSONObject body, String contentType, final ProtocolResponse responseHandler) {
+		route = this.formatRoute(route);
+		
+		HttpEntity entity = null;
+		try {
+			entity = new StringEntity(body.toString());
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, headers, contentType, entity, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
@@ -452,6 +517,14 @@ public class Protocol {
 		route = route + this.paramsToString(params);
 		
 		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, contentType, null, timeout, new ProtocolGotResponse(responseHandler));
+		this.executeProtocolConnectTask(task);
+	}
+	
+	public void doDelete(String route, Map<String, String> headers, Map<String,Object> params, String contentType, final ProtocolResponse responseHandler) {
+		route = this.formatRoute(route);
+		route = route + this.paramsToString(params);
+		
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, headers, contentType, null, timeout, new ProtocolGotResponse(responseHandler));
 		this.executeProtocolConnectTask(task);
 	}
 	
