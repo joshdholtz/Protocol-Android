@@ -87,7 +87,7 @@ public abstract class ProtocolModel {
 				if (!object.isNull(key)) {
 					this.mapToClass(key, object.get(key));
 				
-					Log.d(ProtocolConstants.LOG_TAG, "Value of " + key);
+//					Log.d(ProtocolConstants.LOG_TAG, "Value of " + key);
 //					if (this.getKeyToVariableMap() != null) {
 //						String variable = this.getKeyToVariableMap().get(key);
 //						

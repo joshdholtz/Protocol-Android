@@ -19,6 +19,7 @@ import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -35,6 +36,10 @@ public class Protocol {
 	
 	public final static String CONTENT_TYPE_FORM_DATA = "application/x-www-form-urlencoded";
 	public final static String CONTENT_TYPE_JSON = "application/json";
+	
+	public final static String BROADCAST_DATA_STATUS = "status";
+	public final static String BROADCAST_DATA_RESPONSE = "response";
+	public final static String BROADCAST_DATA_HEADERS = "headers";
 
 	private String baseUrl;
 	private Map<String, BasicNameValuePair> headers;
@@ -235,6 +240,14 @@ public class Protocol {
 		route = route + this.paramsToString(params);
 		
 		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, contentType, null, timeout, new ProtocolGotResponse(responseHandler));
+		this.executeProtocolConnectTask(task);
+	}
+	
+	public void doGet(String route, Map<String,String> headers, Map<String,Object> params, String contentType, Context context, Intent broadcastIntent) {
+		route = this.formatRoute(route);
+		route = route + this.paramsToString(params);
+		
+		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, headers, contentType, null, timeout, null, context, broadcastIntent);
 		this.executeProtocolConnectTask(task);
 	}
 	

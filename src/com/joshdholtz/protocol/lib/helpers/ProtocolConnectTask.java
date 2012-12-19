@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -33,6 +34,8 @@ import com.joshdholtz.protocol.lib.Protocol;
 import com.joshdholtz.protocol.lib.ProtocolMultipartEntity;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
@@ -47,6 +50,8 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	private Timer timer;
 	private int timeout;
 	private GotResponse handler;
+	private Context context;
+	private Intent broadcastIntent;
 	
 	private HttpUriRequest httpUriRequest;
 	
@@ -64,6 +69,10 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 	}
 	
 	public ProtocolConnectTask(HttpMethod method, String route, Map<String, String> headers, String contentType, HttpEntity entity, int timeout, GotResponse handler) {
+		this(method, route, new HashMap<String, String>(), contentType, entity, timeout, handler, null, null);
+	}
+	
+	public ProtocolConnectTask(HttpMethod method, String route, Map<String, String> headers, String contentType, HttpEntity entity, int timeout, GotResponse handler, Context context, Intent broadcastIntent) {
 		this.method = method;
 		this.route = route;
 		this.headers = headers;
@@ -71,6 +80,12 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 		this.entity = entity;
 		this.timeout = timeout;
 		this.handler = handler;
+		this.context = context;
+		this.broadcastIntent = broadcastIntent;
+		
+		if (headers == null) {
+			headers = new HashMap<String, String>();
+		}
 	}
 	
 	@Override
@@ -121,10 +136,6 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 					break;
 			}
 			
-			if (contentType != null) {
-				httpUriRequest.setHeader("Content-Type", contentType);
-			}
-			
 			// Adds the headers
 			for (int i = 0; i < Protocol.getInstance().getHeaders().size(); ++i) {
 				BasicNameValuePair header = Protocol.getInstance().getHeaders().get(i);
@@ -137,6 +148,12 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 		        httpUriRequest.setHeader(pairs.getKey(), pairs.getValue());
 		        it.remove(); // avoids a ConcurrentModificationException
 		    }
+		    
+		    if (contentType != null) {
+				httpUriRequest.setHeader("Content-Type", contentType);
+			}
+			
+			Log.d(ProtocolConstants.LOG_TAG, "Content-Type: " + contentType);
 			
 			Log.d(ProtocolConstants.LOG_TAG, method.toString() + " - " + route);
 			HttpResponse httpResponse = httpClient.execute(httpUriRequest);
@@ -179,8 +196,15 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 			httpUriRequest.abort();
 			
 			String nullStr = null;
-			handler.handleResponse(null, -1, nullStr);
-			Log.d("", "ServerConnect - aborting request from cancel");
+			if (handler != null) {
+				handler.handleResponse(null, -1, nullStr);
+				Log.d("", "ServerConnect - aborting request from cancel");
+			}
+			if (context != null && broadcastIntent != null) {
+				broadcastIntent.putExtra(Protocol.BROADCAST_DATA_STATUS, -1);
+				context.sendBroadcast(broadcastIntent);
+			}
+			
 		}
 	}
 	
@@ -192,9 +216,31 @@ public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
 		
 		if (this.isCancelled() || httpResponse == null) {
 			String nullStr = null;
-			handler.handleResponse(null, status, nullStr);
+			if (handler != null) {
+				handler.handleResponse(null, status, nullStr);
+			}
+			if (context != null && broadcastIntent != null) {
+				broadcastIntent.putExtra(Protocol.BROADCAST_DATA_STATUS, -1);
+				context.sendBroadcast(broadcastIntent);
+			}
 		} else {
-			handler.handleResponse(httpResponse, status, stringResp);
+			if (handler != null) {
+				handler.handleResponse(httpResponse, status, stringResp);
+			}
+			if (context != null && broadcastIntent != null) {
+				HashMap<String, String> headersMap = new HashMap<String, String>();
+				
+				Header[] headers = httpResponse.getAllHeaders();
+				for (int i = 0; i < headers.length; ++i) {
+					Header header = headers[i];
+					headersMap.put(header.getName(), header.getValue());
+				}
+				
+				broadcastIntent.putExtra(Protocol.BROADCAST_DATA_HEADERS, headersMap);
+				broadcastIntent.putExtra(Protocol.BROADCAST_DATA_STATUS, status);
+				broadcastIntent.putExtra(Protocol.BROADCAST_DATA_RESPONSE, stringResp);
+				context.sendBroadcast(broadcastIntent);
+			}
 		}
 	}
 	

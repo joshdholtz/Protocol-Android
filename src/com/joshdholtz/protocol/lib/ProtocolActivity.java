@@ -17,7 +17,10 @@ import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 import com.joshdholtz.protocol.lib.test.MemberModel;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -40,13 +43,13 @@ public class ProtocolActivity extends Activity {
 
 		img = (ImageView) this.findViewById(R.id.img);
 		
-		Protocol.getInstance().setBaseUrl("http://192.168.0.134:3000");
+		Protocol.getInstance().setBaseUrl("http://joshdholtz.com/protocol.php");
 		Protocol.getInstance().setDebug(true);
 
 		/*
 		 * Shows how to do a simple GET request and map to a model
 		 */
-//		this.getMember();
+		this.getMember();
 		
 		/*
 		 * Shows how to do a simple GET request and map to a list of models
@@ -63,23 +66,23 @@ public class ProtocolActivity extends Activity {
 //		this.getBitmap();
 //		this.getBitmap();
 		
-		JSONObject body = new JSONObject();
-		try {
-			body.put("email", "nick.gartmann@gmail.com");
-			body.put("password", "Mclblko3");
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		Protocol.getInstance().doPost("/session", body, Protocol.CONTENT_TYPE_JSON, new ProtocolResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				
-			}
-			
-		});
+//		JSONObject body = new JSONObject();
+//		try {
+//			body.put("email", "nick.gartmann@gmail.com");
+//			body.put("password", "Mclblko3");
+//		} catch (JSONException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		Protocol.getInstance().doPost("/session", body, Protocol.CONTENT_TYPE_JSON, new ProtocolResponse() {
+//
+//			@Override
+//			public void handleResponse(HttpResponse response, int status, String data) {
+//				
+//			}
+//			
+//		});
 		
 //		Protocol.getInstance().doGet("/304", new ProtocolResponse() {
 //
@@ -92,6 +95,18 @@ public class ProtocolActivity extends Activity {
 		
 	}
 	
+	@Override
+	public void onResume() {
+		super.onResume();
+		this.registerReceiver(receiver, new IntentFilter("com.joshdholtz.protocol.TEST"));
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		this.unregisterReceiver(receiver);
+	}
+	
 	/**
 	 * Gets a member model.
 	 */
@@ -101,46 +116,48 @@ public class ProtocolActivity extends Activity {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("example","member_1");
 		
+		Protocol.getInstance().doGet("/protocol.php", null, params, Protocol.CONTENT_TYPE_JSON, this, new Intent("com.joshdholtz.protocol.TEST"));
+		
 		// Sends the GET request
-		Protocol.getInstance().doGet("/protocol.php", params, new ProtocolResponse() {
-
-			@Override
-			public void handleResponse(HttpResponse response, int status, String data) {
-				
-				// Checks for an okay status of 200
-				if (status == 200) {
-
-					/*
-					 * Method 1 - Create empty model and calls "initFromJSONString"
-					 * initFromJSONString returns a boolean (return false if error with JSON parsing)
-					 */
-					MemberModel member = new MemberModel();
-					boolean success = member.initFromJSONString(data);
-					if (success) { 
-						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
-						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
-						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
-					}
-						
-					/*
-					 * Method 2 - Creates a model with ProtocolModel
-					 * Returns the model (return null if error with JSON parsing)
-					 * 
-					 * Why would we do this? There is a call similar to this that returns an array of model.
-					 * Some developers like consistency :)
-					 * 
-					 */
-					member = ProtocolModel.createModel(MemberModel.class, data);
-					if (member != null) {
-						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
-						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
-						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
-					}
-					
-				}
-			}
-
-		});
+//		Protocol.getInstance().doGet("/protocol.php", params, new ProtocolResponse() {
+//
+//			@Override
+//			public void handleResponse(HttpResponse response, int status, String data) {
+//				
+//				// Checks for an okay status of 200
+//				if (status == 200) {
+//
+//					/*
+//					 * Method 1 - Create empty model and calls "initFromJSONString"
+//					 * initFromJSONString returns a boolean (return false if error with JSON parsing)
+//					 */
+//					MemberModel member = new MemberModel();
+//					boolean success = member.initFromJSONString(data);
+//					if (success) { 
+//						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
+//						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
+//						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
+//					}
+//						
+//					/*
+//					 * Method 2 - Creates a model with ProtocolModel
+//					 * Returns the model (return null if error with JSON parsing)
+//					 * 
+//					 * Why would we do this? There is a call similar to this that returns an array of model.
+//					 * Some developers like consistency :)
+//					 * 
+//					 */
+//					member = ProtocolModel.createModel(MemberModel.class, data);
+//					if (member != null) {
+//						Log.d(ProtocolConstants.LOG_TAG, "Id - " + member.id);
+//						Log.d(ProtocolConstants.LOG_TAG, "First name - " + member.firstName);
+//						Log.d(ProtocolConstants.LOG_TAG, "Last name - " + member.lastName);
+//					}
+//					
+//				}
+//			}
+//
+//		});
 		
 	}
 	
@@ -276,5 +293,16 @@ public class ProtocolActivity extends Activity {
 			}
 		}
 	}
+	
+	BroadcastReceiver receiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Map<String, String> headers = (Map<String, String>) intent.getSerializableExtra(Protocol.BROADCAST_DATA_HEADERS);
+			int status = intent.getIntExtra(Protocol.BROADCAST_DATA_STATUS, -1);
+			String response = intent.getStringExtra(Protocol.BROADCAST_DATA_RESPONSE);
+		}
+		
+	};
 
 }
