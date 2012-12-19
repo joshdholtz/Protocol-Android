@@ -8,7 +8,7 @@ import java.util.TimerTask;
 
 import org.apache.http.HttpResponse;
 
-import com.joshdholtz.protocol.lib.Protocol;
+import com.joshdholtz.protocol.lib.ProtocolClient;
 import com.joshdholtz.protocol.lib.ProtocolBitmapResponse;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConnectTask.ConnectTimerTask;
 
@@ -73,15 +73,15 @@ public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 	protected void onPostExecute(Bitmap bitmap) {
 		timer.cancel();
 		
-		Protocol.getInstance().finishedProtocolConnectTask();
+		ProtocolClient.getInstance().finishedProtocolConnectTask();
 		
 		if (this.isCancelled() || bitmap == null) {
-			if (Protocol.getInstance().isDebug()) {
+			if (ProtocolClient.getInstance().isDebug()) {
 				Log.d(ProtocolConstants.LOG_TAG, "Bitmap - not retrieved");
 			}
 			responseHandler.handleResponse(imageViewTag, null);
 		} else {
-			if (Protocol.getInstance().isDebug()) {
+			if (ProtocolClient.getInstance().isDebug()) {
 				Log.d(ProtocolConstants.LOG_TAG, "Bitmap - retrieved");
 			}
 			this.responseHandler.handleResponse(imageViewTag, bitmap);
