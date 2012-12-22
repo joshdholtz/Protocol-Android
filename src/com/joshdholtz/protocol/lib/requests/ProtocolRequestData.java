@@ -27,4 +27,11 @@ public abstract class ProtocolRequestData {
 		headers.put(key, value);
 	}
 	
+	public boolean containsHeader(String key) {
+		if (headers == null) {
+			return false;
+		}
+		return headers.containsKey(key);
+	}
+	
 }

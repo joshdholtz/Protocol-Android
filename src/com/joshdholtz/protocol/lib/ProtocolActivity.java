@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.joshdholtz.protocol.lib.R;
+import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
+import com.joshdholtz.protocol.lib.responses.JSONResponse;
+import com.joshdholtz.protocol.lib.responses.StringResponse;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -15,6 +18,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 public class ProtocolActivity extends Activity {
 	
@@ -27,6 +31,44 @@ public class ProtocolActivity extends Activity {
 		setContentView(R.layout.main);
 
 		img = (ImageView) this.findViewById(R.id.img);
+		
+		ProtocolClient client = new ProtocolClient();
+		client.setBaseUrl("http://joshdholtz.com");
+				
+		client.doGet("/protocol.php?example=members", null, StringResponse.class, new ProtocolResponseHandler<StringResponse>() {
+
+			@Override
+			public void handleResponse(StringResponse responseData) {
+				Toast.makeText(getApplication(), responseData.getString(), Toast.LENGTH_SHORT).show();
+			}
+			
+		});
+		
+		client.doGet("/protocol.php?example=members", null, JSONResponse.class, new ProtocolResponseHandler<JSONResponse>() {
+
+			@Override
+			public void handleResponse(JSONResponse responseData) {
+				if (responseData.getJsonArray() != null) {
+					Toast.makeText(getApplication(), "JSON Array Size - " + responseData.getJsonArray().length(), Toast.LENGTH_SHORT).show();
+				} else if (responseData.getJsonObject() != null) {
+					Toast.makeText(getApplication(), "JSON Object Size - " + responseData.getJsonObject().length(), Toast.LENGTH_SHORT).show();
+				}
+			}
+			
+		});
+		
+		client.doGet("/protocol.php?example=member_1", null, JSONResponse.class, new ProtocolResponseHandler<JSONResponse>() {
+
+			@Override
+			public void handleResponse(JSONResponse responseData) {
+				if (responseData.getJsonArray() != null) {
+					Toast.makeText(getApplication(), "JSON Array Size - " + responseData.getJsonArray().length(), Toast.LENGTH_SHORT).show();
+				} else if (responseData.getJsonObject() != null) {
+					Toast.makeText(getApplication(), "JSON Object Size - " + responseData.getJsonObject().length(), Toast.LENGTH_SHORT).show();
+				}
+			}
+			
+		});
 		
 	}
 

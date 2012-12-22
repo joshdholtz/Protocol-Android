@@ -2,6 +2,7 @@ package com.joshdholtz.protocol.lib.requests;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,10 @@ public class ParamsRequestData extends ProtocolRequestData {
 
 	private Map<String, String> params;
 	private String contentType;
+	
+	public ParamsRequestData() {
+		this.params = new HashMap<String, String>();
+	}
 	
 	public ParamsRequestData(Map<String, String> params) {
 		this.params = params;

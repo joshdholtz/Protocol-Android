@@ -2,12 +2,12 @@ package com.joshdholtz.protocol.lib;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +18,6 @@ import org.apache.http.message.BasicNameValuePair;
 
 import android.util.Log;
 
-import com.joshdholtz.protocol.lib.helpers.CountingOutputStream;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
 public class ProtocolMultipartEntity extends BasicHttpEntity {
@@ -172,6 +171,190 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 	public void println(String str) {
 		str = str + "\n";
 		forRealSize += str.getBytes().length;
+	}
+	
+	public class ProxyOutputStream extends FilterOutputStream {
+
+	    /**
+	     * Constructs a new ProxyOutputStream.
+	     * 
+	     * @param proxy  the OutputStream to delegate to
+	     */
+	    public ProxyOutputStream(OutputStream proxy) {
+	        super(proxy);
+	        // the proxy is stored in a protected superclass variable named 'out'
+	    }
+
+	    /**
+	     * Invokes the delegate's <code>write(int)</code> method.
+	     * @param idx the byte to write
+	     * @throws IOException if an I/O error occurs
+	     */
+	    public void write(int idx) throws IOException {
+	        out.write(idx);
+	    }
+
+	    /**
+	     * Invokes the delegate's <code>write(byte[])</code> method.
+	     * @param bts the bytes to write
+	     * @throws IOException if an I/O error occurs
+	     */
+	    public void write(byte[] bts) throws IOException {
+	        out.write(bts);
+	    }
+
+	    /**
+	     * Invokes the delegate's <code>write(byte[])</code> method.
+	     * @param bts the bytes to write
+	     * @param st The start offset
+	     * @param end The number of bytes to write
+	     * @throws IOException if an I/O error occurs
+	     */
+	    public void write(byte[] bts, int st, int end) throws IOException {
+	        out.write(bts, st, end);
+	    }
+
+	    /**
+	     * Invokes the delegate's <code>flush()</code> method.
+	     * @throws IOException if an I/O error occurs
+	     */
+	    public void flush() throws IOException {
+	        out.flush();
+	    }
+
+	    /**
+	     * Invokes the delegate's <code>close()</code> method.
+	     * @throws IOException if an I/O error occurs
+	     */
+	    public void close() throws IOException {
+	        out.close();
+	    }
+
+	}
+	
+	public class CountingOutputStream extends ProxyOutputStream {
+
+	    /** The count of bytes that have passed. */
+	    private long count;
+
+	    /**
+	     * Constructs a new CountingOutputStream.
+	     * 
+	     * @param out  the OutputStream to write to
+	     */
+	    public CountingOutputStream( OutputStream out ) {
+	        super(out);
+	    }
+
+	    //-----------------------------------------------------------------------
+	    /**
+	     * Writes the contents of the specified byte array to this output stream
+	     * keeping count of the number of bytes written.
+	     *
+	     * @param b  the bytes to write, not null
+	     * @throws IOException if an I/O error occurs
+	     * @see java.io.OutputStream#write(byte[])
+	     */
+	    public void write(byte[] b) throws IOException {
+	        count += b.length;
+	        super.write(b);
+	    }
+
+	    /**
+	     * Writes a portion of the specified byte array to this output stream
+	     * keeping count of the number of bytes written.
+	     *
+	     * @param b  the bytes to write, not null
+	     * @param off  the start offset in the buffer
+	     * @param len  the maximum number of bytes to write
+	     * @throws IOException if an I/O error occurs
+	     * @see java.io.OutputStream#write(byte[], int, int)
+	     */
+	    public void write(byte[] b, int off, int len) throws IOException {
+	        count += len;
+	        super.write(b, off, len);
+	    }
+
+	    /**
+	     * Writes a single byte to the output stream adding to the count of the
+	     * number of bytes written.
+	     *
+	     * @param b  the byte to write
+	     * @throws IOException if an I/O error occurs
+	     * @see java.io.OutputStream#write(int)
+	     */
+	    public void write(int b) throws IOException {
+	        count++;
+	        super.write(b);
+	    }
+
+	    //-----------------------------------------------------------------------
+	    /**
+	     * The number of bytes that have passed through this stream.
+	     * <p>
+	     * NOTE: From v1.3 this method throws an ArithmeticException if the
+	     * count is greater than can be expressed by an <code>int</code>.
+	     * See {@link #getByteCount()} for a method using a <code>long</code>.
+	     *
+	     * @return the number of bytes accumulated
+	     * @throws ArithmeticException if the byte count is too large
+	     */
+	    public synchronized int getCount() {
+	        long result = getByteCount();
+	        if (result > Integer.MAX_VALUE) {
+	            throw new ArithmeticException("The byte count " + result + " is too large to be converted to an int");
+	        }
+	        return (int) result;
+	    }
+
+	    /** 
+	     * Set the byte count back to 0. 
+	     * <p>
+	     * NOTE: From v1.3 this method throws an ArithmeticException if the
+	     * count is greater than can be expressed by an <code>int</code>.
+	     * See {@link #resetByteCount()} for a method using a <code>long</code>.
+	     *
+	     * @return the count previous to resetting
+	     * @throws ArithmeticException if the byte count is too large
+	     */
+	    public synchronized int resetCount() {
+	        long result = resetByteCount();
+	        if (result > Integer.MAX_VALUE) {
+	            throw new ArithmeticException("The byte count " + result + " is too large to be converted to an int");
+	        }
+	        return (int) result;
+	    }
+
+	    /**
+	     * The number of bytes that have passed through this stream.
+	     * <p>
+	     * NOTE: This method is an alternative for <code>getCount()</code>.
+	     * It was added because that method returns an integer which will
+	     * result in incorrect count for files over 2GB.
+	     *
+	     * @return the number of bytes accumulated
+	     * @since Commons IO 1.3
+	     */
+	    public synchronized long getByteCount() {
+	        return this.count;
+	    }
+
+	    /** 
+	     * Set the byte count back to 0. 
+	     * <p>
+	     * NOTE: This method is an alternative for <code>resetCount()</code>.
+	     * It was added because that method returns an integer which will
+	     * result in incorrect count for files over 2GB.
+	     *
+	     * @return the count previous to resetting
+	     * @since Commons IO 1.3
+	     */
+	    public synchronized long resetByteCount() {
+	        long tmp = this.count;
+	        this.count = 0;
+	        return tmp;
+	    }
+
 	}
 
 }
