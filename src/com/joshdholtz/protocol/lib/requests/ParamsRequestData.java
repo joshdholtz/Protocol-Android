@@ -42,19 +42,20 @@ public class ParamsRequestData extends ProtocolRequestData {
 		return contentType;
 	}
 	
-	public Map<String, String> getParams() {
-		return params;
+	public void addParam(String key, String value) {
+		if (params != null) {
+			params.put(key, value);
+		}
 	}
 	
-	private List<BasicNameValuePair> paramsToValuePairs(Map<String, String> params) {
-		List<BasicNameValuePair> nameValuePair = new ArrayList<BasicNameValuePair>();
-
-		List<String> keys = new ArrayList<String>(params.keySet());
-		for (int i = 0; i < keys.size(); ++i) {
-			nameValuePair.add(new BasicNameValuePair(keys.get(i), params.get(keys.get(i)).toString()));
+	public void removeParam(String key) {
+		if (params != null) {
+			params.remove(key);
 		}
-		
-		return nameValuePair;
+	}
+	
+	public Map<String, String> getParams() {
+		return params;
 	}
 
 }

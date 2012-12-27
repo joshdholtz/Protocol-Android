@@ -4,6 +4,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolTask;
 import com.joshdholtz.protocol.lib.R;
 import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
 import com.joshdholtz.protocol.lib.responses.JSONResponse;
@@ -33,9 +37,11 @@ public class ProtocolActivity extends Activity {
 		img = (ImageView) this.findViewById(R.id.img);
 		
 		ProtocolClient client = new ProtocolClient();
-		client.setBaseUrl("http://joshdholtz.com");
-				
-		client.doGet("/protocol.php?example=members", null, StringResponse.class, new ProtocolResponseHandler<StringResponse>() {
+		client.setBaseUrl("http://www.statuscodewhat.com");
+		client.addHeader("client_test_request_header", "client_test_request_header_value");
+		client.addHeader("client_test_request_header_override", "THIS SHOULDN'T SHOW");
+		
+		client.doGet("/200?body=HelloWorld", null, StringResponse.class, new ProtocolResponseHandler<StringResponse>() {
 
 			@Override
 			public void handleResponse(StringResponse responseData) {
@@ -44,7 +50,25 @@ public class ProtocolActivity extends Activity {
 			
 		});
 		
-		client.doGet("/protocol.php?example=members", null, JSONResponse.class, new ProtocolResponseHandler<JSONResponse>() {
+		ParamsRequestData requestData1 = new ParamsRequestData();
+		requestData1.addParam("body", "{\"name1\":\"value1\",\"name2\":\"value2\",\"name3\":\"value3\"}");
+		client.doGet("/200", requestData1, JSONResponse.class, new ProtocolResponseHandler<JSONResponse>() {
+
+			@Override
+			public void handleResponse(JSONResponse responseData) {
+				if (responseData.getJsonArray() != null) {
+					Toast.makeText(getApplication(), "JSON Array Size - " + responseData.getJsonArray().length(), Toast.LENGTH_SHORT).show();
+				} else if (responseData.getJsonObject() != null) {
+					Toast.makeText(getApplication(), "JSON Object Size - " + responseData.getJsonObject().length(), Toast.LENGTH_SHORT).show();
+				}
+				
+			}
+			
+		});
+		
+		ParamsRequestData requestData2 = new ParamsRequestData();
+		requestData2.addParam("body", "[{\"name1\":\"value1\",\"name2\":\"value2\"},{\"name1\":\"value1\",\"name2\":\"value2\"}]");
+		client.doGet("/200", requestData2, JSONResponse.class, new ProtocolResponseHandler<JSONResponse>() {
 
 			@Override
 			public void handleResponse(JSONResponse responseData) {
@@ -57,14 +81,49 @@ public class ProtocolActivity extends Activity {
 			
 		});
 		
-		client.doGet("/protocol.php?example=member_1", null, JSONResponse.class, new ProtocolResponseHandler<JSONResponse>() {
+		ParamsRequestData requestData3 = new ParamsRequestData();
+		requestData3.addHeader("test_request_header", "test_request_header_value");
+		requestData3.addHeader("client_test_request_header_override", "client_test_request_header_override_value");
+		requestData3.addParam("body", "");
+		requestData3.addParam("show_headers", "true");
+		client.doGet("/200", requestData3, JSONResponse.class, new ProtocolResponseHandler<JSONResponse>() {
 
 			@Override
 			public void handleResponse(JSONResponse responseData) {
-				if (responseData.getJsonArray() != null) {
-					Toast.makeText(getApplication(), "JSON Array Size - " + responseData.getJsonArray().length(), Toast.LENGTH_SHORT).show();
-				} else if (responseData.getJsonObject() != null) {
-					Toast.makeText(getApplication(), "JSON Object Size - " + responseData.getJsonObject().length(), Toast.LENGTH_SHORT).show();
+				if (responseData.getJsonObject() != null) {
+					try {
+						JSONObject headers = responseData.getJsonObject().getJSONObject("headers");
+						if (headers.has("test_request_header")) {
+							Toast.makeText(getApplication(), "Found test_request_header - " + headers.getString("test_request_header"), Toast.LENGTH_SHORT).show();
+						}
+						if (headers.has("client_test_request_header")) {
+							Toast.makeText(getApplication(), "Found client_test_request_header - " + headers.getString("client_test_request_header"), Toast.LENGTH_SHORT).show();
+						}
+						if (headers.has("client_test_request_header_override")) {
+							Toast.makeText(getApplication(), "Found client_test_request_header_override - " + headers.getString("client_test_request_header_override"), Toast.LENGTH_SHORT).show();
+						}
+					
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+		});
+		
+		ParamsRequestData requestData4 = new ParamsRequestData();
+		requestData4.addParam("body", "{\"name1\":\"value1\",\"name2\":\"value2\"}}");
+		CustomClient.get("/200", requestData4, new ProtocolResponseHandler<JSONResponse>() {
+
+			@Override
+			public void handleResponse(JSONResponse responseData) {
+				if (responseData.getJsonObject() != null) {
+					try {
+						String name1 = responseData.getJsonObject().getString("name1");
+						Toast.makeText(getApplication(), "CustomClient name1 - " + name1, Toast.LENGTH_SHORT).show();
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			

@@ -34,16 +34,5 @@ public class FileRequestData extends ProtocolRequestData {
 	public String getContentType() {
 		return contentType;
 	}
-	
-	private List<BasicNameValuePair> paramsToValuePairs(Map<String, String> params) {
-		List<BasicNameValuePair> nameValuePair = new ArrayList<BasicNameValuePair>();
-
-		List<String> keys = new ArrayList<String>(params.keySet());
-		for (int i = 0; i < keys.size(); ++i) {
-			nameValuePair.add(new BasicNameValuePair(keys.get(i), params.get(keys.get(i)).toString()));
-		}
-		
-		return nameValuePair;
-	}
 
 }

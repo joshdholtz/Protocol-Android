@@ -1,10 +1,8 @@
 package com.joshdholtz.protocol.lib;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -50,15 +48,12 @@ import com.joshdholtz.protocol.lib.responses.ProtocolResponseData;
 
 public class ProtocolClient {
 	
-	public final static String CONTENT_TYPE_FORM_DATA = "application/x-www-form-urlencoded";
-	public final static String CONTENT_TYPE_JSON = "application/json";
-	
 	public final static String BROADCAST_DATA_STATUS = "status";
 	public final static String BROADCAST_DATA_RESPONSE = "response";
 	public final static String BROADCAST_DATA_HEADERS = "headers";
 
 	private String baseUrl;
-	private Map<String, BasicNameValuePair> headers;
+	private Map<String, String> headers;
 	
 	private int timeout;
 	
@@ -73,7 +68,7 @@ public class ProtocolClient {
 	
 	public ProtocolClient() {
 		baseUrl = null;
-		headers = new HashMap<String, BasicNameValuePair>();
+		headers = new HashMap<String, String>();
 		
 		timeout = 30000;
 		
@@ -86,14 +81,6 @@ public class ProtocolClient {
 		
 		observedStatuses = new SparseArray<ProtocolStatusListener>();
 	}
-	
-//	public static Protocol getInstance() {
-//		return LazyHolder.instance;
-//	}
-//	
-//	private static class LazyHolder {
-//		private static Protocol instance = new Protocol();
-//	}
 	
 	/**
 	 * Sets the base url.
@@ -117,7 +104,7 @@ public class ProtocolClient {
 	 * @param value
 	 */
 	public void addHeader(String key, String value) {
-		headers.put(key, new BasicNameValuePair(key, value));
+		headers.put(key, value);
 	}
 	
 	/**
@@ -130,10 +117,10 @@ public class ProtocolClient {
 	
 	/**
 	 * Gets all the headers.
-	 * @return List<BasicNameValuePair>
+	 * @return Map<String, String>
 	 */
-	public List<BasicNameValuePair> getHeaders() {
-		return new ArrayList<BasicNameValuePair>(headers.values());
+	public Map<String, String> getHeaders() {
+		return headers;
 	}
 	
 	/**
@@ -164,24 +151,13 @@ public class ProtocolClient {
 		this.maxAsyncCount = maxAsyncCount;
 	}
 	
+	/**
+	 * Clears request queue
+	 */
 	public void clearQueue() {
 		this.queue.clear();
 	}
-
-//	/**
-//	 * @return the bitmapCache
-//	 */
-//	public ProtocolBitmapCache getBitmapCache() {
-//		return bitmapCache;
-//	}
-//
-//	/**
-//	 * @param bitmapCache the bitmapCache to set
-//	 */
-//	public void setBitmapCache(ProtocolBitmapCache bitmapCache) {
-//		this.bitmapCache = bitmapCache;
-//	}
-
+	
 	/**
 	 * @return the debug
 	 */
@@ -206,25 +182,35 @@ public class ProtocolClient {
 	    return activeNetworkInfo != null;
 	}
 	
+	/**
+	 * Add a status listener
+	 * @param status
+	 * @param listener
+	 */
 	public void observeStatus(int status, ProtocolStatusListener listener) {
 		this.observedStatuses.put(status, listener);
 	}
 	
+	/**
+	 * Remove a status listener
+	 * @param status
+	 */
 	public void removeObserveStatus(int status) {
 		this.observedStatuses.remove(status);
 	}
 	
 	/**
-	 * Performs a GET request with params.
+	 * Performs a GET request.
 	 * 
 	 * If no base url is set, the route passed in will be the full route used.
 	 * 
+	 * 
 	 * @param route
-	 * @param params
-	 * @param contentType
+	 * @param requestData
+	 * @param clazz
 	 * @param responseHandler
 	 */
-	public void doGet(String route, ParamsRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
+	public ProtocolTask doGet(String route, ParamsRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
 		route = this.formatRoute(route);
 		if (requestData != null) {
 			route = route + this.paramsToString(requestData.getParams());
@@ -233,12 +219,17 @@ public class ProtocolClient {
 		if (requestData == null) {
 			requestData = new ParamsRequestData();
 		}
+		if (clazz == null) {
+			
+		}
 		
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_GET, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_GET, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
 		this.executeProtocolConnectTask(task);
+		
+		return task;
 	}
 	
 	/**
@@ -249,65 +240,69 @@ public class ProtocolClient {
 	 * @param route
 	 * @param responseHandler
 	 */
-	public void doGetBitmap(String route, String imageViewTag, final ProtocolBitmapResponse responseHandler) {
-		route = this.formatRoute(route);
-		
-		ProtocolConnectBitmapTask task = new ProtocolConnectBitmapTask(route, imageViewTag, timeout, responseHandler);
-		this.executeProtocolConnectTask(task);
-	}
-		
-	/**
-	 * Performs a POST request with params.
-	 * 
-	 * If no base url is set, the route passed in will be the full route used.
-	 * 
-	 * @param route
-	 * @param params
-	 * @param contentType
-	 * @param responseHandler
-	 */
-	public void doPost(String route, ProtocolRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
-		route = this.formatRoute(route);
-		
-		// Adds global headers
-		addHeadersToRequest(requestData);
-		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_POST, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
-		this.executeProtocolConnectTask(task);
-	}
-		
-	/**
-	 * Performs a PUT request with params.
-	 * 
-	 * If no base url is set, the route passed in will be the full route used.
-	 * 
-	 * @param route
-	 * @param params
-	 * @param contentType
-	 * @param responseHandler
-	 */
-	public void doPut(String route, ProtocolRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
-		route = this.formatRoute(route);
-		
-		// Adds global headers
-		addHeadersToRequest(requestData);
-		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_PUT, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
-		this.executeProtocolConnectTask(task);
-	}
+//	public void doGetBitmap(String route, String imageViewTag, final ProtocolBitmapResponse responseHandler) {
+//		route = this.formatRoute(route);
+//		
+//		ProtocolConnectBitmapTask task = new ProtocolConnectBitmapTask(route, imageViewTag, timeout, responseHandler);
+//		this.executeProtocolConnectTask(task);
+//	}
 	
 	/**
-	 * Performs a DELETE request with params.
+	 * Performs a POST request.
 	 * 
 	 * If no base url is set, the route passed in will be the full route used.
 	 * 
 	 * @param route
-	 * @param params
-	 * @param contentType
+	 * @param requestData
+	 * @param clazz
 	 * @param responseHandler
 	 */
-	@SuppressWarnings("unused")
-	public void doDelete(String route, ParamsRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
+	public ProtocolTask doPost(String route, ProtocolRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
+		route = this.formatRoute(route);
+		
+		// Adds global headers
+		addHeadersToRequest(requestData);
+		
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_POST, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		this.executeProtocolConnectTask(task);
+		
+		return task;
+	}
+		
+	/**
+	 * Performs a PUT request.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * 
+	 * @param route
+	 * @param requestData
+	 * @param clazz
+	 * @param responseHandler
+	 */
+	public ProtocolTask doPut(String route, ProtocolRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
+		route = this.formatRoute(route);
+		
+		// Adds global headers
+		addHeadersToRequest(requestData);
+		
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_PUT, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		this.executeProtocolConnectTask(task);
+		
+		return task;
+	}
+
+	/**
+	 * Performs a PUT request.
+	 * 
+	 * If no base url is set, the route passed in will be the full route used.
+	 * 
+	 * @param route
+	 * @param requestData
+	 * @param clazz
+	 * @param responseHandler
+	 */
+	public ProtocolTask doDelete(String route, ParamsRequestData requestData, Class<? extends ProtocolResponseData> clazz, final ProtocolResponseHandler<? extends ProtocolResponseData> responseHandler) {
 		route = this.formatRoute(route);
 		route = route + this.paramsToString(requestData.getParams());
 		
@@ -318,8 +313,10 @@ public class ProtocolClient {
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
-		ProtocolConnectTask task = new ProtocolConnectTask(HttpMethod.HTTP_DELETE, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_DELETE, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
 		this.executeProtocolConnectTask(task);
+		
+		return task;
 	}
 	
 	private class ProtocolGotResponse extends GotResponse {
@@ -388,7 +385,7 @@ public class ProtocolClient {
 		}
 	}
 	
-	public void finishedProtocolConnectTask() {
+	private void finishedProtocolConnectTask() {
 		synchronized (this) {
 			runningCount--;
 			if (debug) {
@@ -412,10 +409,10 @@ public class ProtocolClient {
 	}
 	
 	private void addHeadersToRequest(ProtocolRequestData requestData) {
-		for (int i = 0; i < headers.size(); ++i) {
-			BasicNameValuePair header = headers.get(i);
-			if (!requestData.containsHeader(header.getName())) {
-				requestData.addHeader(header.getName(), header.getValue());
+		List<String> keys = new ArrayList<String>(headers.keySet());
+		for (String key : keys) {
+			if (!requestData.containsHeader(key)) {
+				requestData.addHeader(key, headers.get(key));
 			}
 		}
 	}
@@ -465,7 +462,7 @@ public class ProtocolClient {
 		public boolean observedStatus(int status);
 	}
 	
-	public class ProtocolConnectTask extends AsyncTask<Void, Void, HttpResponse> {
+	public class ProtocolTask extends AsyncTask<Void, Void, HttpResponse> {
 
 		private HttpMethod method;
 		private String route;
@@ -485,7 +482,7 @@ public class ProtocolClient {
 		
 		private Handler threadHandler = new Handler();
 		
-		public ProtocolConnectTask(HttpMethod method, String route, ProtocolRequestData requestData, int timeout, GotResponse handler, Context context, Intent broadcastIntent) {
+		public ProtocolTask(HttpMethod method, String route, ProtocolRequestData requestData, int timeout, GotResponse handler, Context context, Intent broadcastIntent) {
 			if (requestData == null) {
 				Log.d(ProtocolConstants.LOG_TAG, "REQUEST DATA IS NULL");
 			}
@@ -542,13 +539,6 @@ public class ProtocolClient {
 						httpUriRequest = httpPostFileRequest;
 						
 						httpUriRequest.addHeader("Content-Type", contentType);
-						
-						
-					
-//						httpUriRequest.addHeader("Content-Length", String.valueOf(multi.forRealSize()));
-//						httpUriRequest.addHeader("Accept", "*/*");
-//						httpUriRequest.addHeader("Accept-Language", "en-us");
-//						httpUriRequest.addHeader("Accept-Encoding", "gzip, deflate");
 						
 						break;
 				}
@@ -669,19 +659,19 @@ public class ProtocolClient {
 
 			@Override
 			public void run() {
-				ProtocolConnectTask.this.cancel(true);
+				ProtocolTask.this.cancel(true);
 			}
 			
 		}
 
 	}
 	
-	public abstract class GotResponse {
+	private abstract class GotResponse {
 		public abstract void handleResponse(HttpResponse response, int status, byte[] data);
 		public abstract void handleResponse(HttpResponse response, int status, InputStream in);
 	}
 	
-	public class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
+	private class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {
 
 		private String url;
 		private String imageViewTag;

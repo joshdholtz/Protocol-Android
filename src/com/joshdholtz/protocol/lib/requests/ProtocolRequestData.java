@@ -1,9 +1,12 @@
 package com.joshdholtz.protocol.lib.requests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.message.BasicNameValuePair;
 
 public abstract class ProtocolRequestData {
 	
@@ -32,6 +35,17 @@ public abstract class ProtocolRequestData {
 			return false;
 		}
 		return headers.containsKey(key);
+	}
+	
+	protected List<BasicNameValuePair> paramsToValuePairs(Map<String, String> params) {
+		List<BasicNameValuePair> nameValuePair = new ArrayList<BasicNameValuePair>();
+
+		List<String> keys = new ArrayList<String>(params.keySet());
+		for (int i = 0; i < keys.size(); ++i) {
+			nameValuePair.add(new BasicNameValuePair(keys.get(i), params.get(keys.get(i)).toString()));
+		}
+		
+		return nameValuePair;
 	}
 	
 }
