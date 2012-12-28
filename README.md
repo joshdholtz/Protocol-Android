@@ -122,3 +122,164 @@ client.doGet("/200", requestData3, new JSONResponseHandler() {
 });
 
 ````
+
+### Using ProtocolClient and different request types
+
+```` java
+
+// Performs a post request to /200 with ParamsRequestData to add post parameters to the request body
+ParamsRequestData requestData5 = new ParamsRequestData();
+requestData5.addParam("first_name", "Josh");
+requestData5.addParam("last_name", "Holtz");
+client.doPost("/200", requestData5, new StringResponseHandler() {
+
+	@Override
+	public void handleResponse(String stringResponse) {
+		if (this.getStatus() == 200) {
+			Toast.makeText(getApplication(), "POST param success", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(getApplication(), "POST params failure", Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+});
+
+// Performs a post request to /200 with JSONRequestData to add a JSON string to the request body
+Map<String, String> jsonObjectData = new HashMap<String, String>();
+jsonObjectData.put("first_name", "Josh");
+jsonObjectData.put("last_name", "Holtz");
+JSONObject jsonObject = new JSONObject(jsonObjectData);
+
+JSONRequestData requestData6 = new JSONRequestData(jsonObject);
+client.doPut("/200", requestData6, new StringResponseHandler() {
+
+	@Override
+	public void handleResponse(String stringResponse) {
+		if (this.getStatus() == 200) {
+			Toast.makeText(getApplication(), "POST json success", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(getApplication(), "POST json failure", Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+});
+
+// Performs a post request to /200 with FileRequestData to add post parameters and files with to the mulit-part request body
+Map<String, String> fileObjectData = new HashMap<String, String>();
+fileObjectData.put("first_name", "Josh");
+fileObjectData.put("last_name", "Holtz");
+
+Map<String, File> filesData = new HashMap<String, File>();
+filesData.put("file1", new File("../somepath.."));
+
+FileRequestData requestData7 = new FileRequestData(fileObjectData, filesData);
+client.doPut("/200", requestData7, new StringResponseHandler() {
+
+	@Override
+	public void handleResponse(String stringResponse) {
+		if (this.getStatus() == 200) {
+			Toast.makeText(getApplication(), "POST file success", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(getApplication(), "POST file failure", Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+});
+
+````
+
+### Observing HTTP statuses on a ProtocolClient
+
+```` java
+// This ProtocolStatusListener gets called whenver a 401 is received in a ProtocolClient
+// Returning false does not allow that requests ProtocolResponseHandler (or subclass) to execute
+client.observeStatus(401, new ProtocolStatusListener() {
+
+	@Override
+	public boolean observedStatus(int status, ProtocolResponseHandler handler) {
+		Toast.makeText(getApplication(), "You are not logged in; We observed a status - " + status, Toast.LENGTH_SHORT).show();
+		return false;
+	}
+	
+});
+
+// This ProtocolStatusListener gets called whenver a 500 is received in a ProtocolClient
+// Returning true does allow that requests ProtocolResponseHandler (or subclass) to execute
+client.observeStatus(500, new ProtocolStatusListener() {
+
+	@Override
+	public boolean observedStatus(int status, ProtocolResponseHandler handler) {
+		Toast.makeText(getApplication(), "We got a server error; We observed a status - " + status, Toast.LENGTH_SHORT).show();
+		return true;
+	}
+	
+});
+
+client.doGet("/401", null, new JSONResponseHandler() {
+
+	@Override
+	public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
+		Toast.makeText(getApplication(), "The ProtocolStatusListener should catch this 401 and not show this toast", Toast.LENGTH_SHORT).show();
+	}
+	
+});
+
+client.doGet("/500", null, new JSONResponseHandler() {
+
+	@Override
+	public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
+		Toast.makeText(getApplication(), "The ProtocolStatusListener should catch this 500 and show this toast", Toast.LENGTH_SHORT).show();
+	}
+	
+});
+
+````
+
+### Subclassing ProtocolClient as a singleton
+
+```` java
+public class CustomClient extends ProtocolClient {
+
+	private CustomClient() {
+		super("http://www.statuscodewhat.com");
+	}
+	
+	public static CustomClient getInstance() {
+		return LazyHolder.instance;
+	}
+	
+	private static class LazyHolder {
+		private static CustomClient instance = new CustomClient();
+	}
+	
+	/**
+	  * This wrapper of doGet is pointless but just an example of what a subclassed ProtocolClient could do
+	  */
+	public static ProtocolTask get(String route, ParamsRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doGet(route, requestData, responseHandler);
+	}
+	
+	/**
+	  * This wrapper of doPost is pointless but just an example of what a subclassed ProtocolClient could do
+	  */
+	public static ProtocolTask post(String route, JSONRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doPost(route, requestData, responseHandler);
+	}
+	
+	/**
+	  * This wrapper of doPut is pointless but just an example of what a subclassed ProtocolClient could do
+	  */
+	public static ProtocolTask put(String route, JSONRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doPut(route, requestData, responseHandler);
+	}
+	
+	/**
+	  * This wrapper of doDelete is pointless but just an example of what a subclassed ProtocolClient could do
+	  */
+	public static ProtocolTask delete(String route, ParamsRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doDelete(route, requestData, responseHandler);
+	}
+	
+}
+
+````
