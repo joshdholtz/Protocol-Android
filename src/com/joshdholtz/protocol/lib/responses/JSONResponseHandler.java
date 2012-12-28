@@ -2,6 +2,7 @@ package com.joshdholtz.protocol.lib.responses;
 
 import java.io.UnsupportedEncodingException;
 
+import org.apache.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,31 +12,16 @@ import android.util.Log;
 
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
-public class JSONResponse extends ProtocolResponseData {
-
-	public JSONObject jsonObject;
-	public JSONArray jsonArray;
-	
-
-	/**
-	 * @return the jsonObject
-	 */
-	public JSONObject getJsonObject() {
-		return jsonObject;
-	}
-
-	/**
-	 * @return the jsonArray
-	 */
-	public JSONArray getJsonArray() {
-		return jsonArray;
-	}
+public abstract class JSONResponseHandler extends ProtocolResponseHandler {
 
 	@Override
-	public void generateResponse() {
+	public void handleResponse(HttpResponse response, int status, byte[] data) {
+		JSONObject jsonObject = null;
+		JSONArray jsonArray = null;
+		
 		Log.d(ProtocolConstants.LOG_TAG, "IN JSON GENERATE RESPONSE");
 		try {
-			Object json = new JSONTokener(new String(this.getData(), "UTF8")).nextValue();
+			Object json = new JSONTokener(new String(data, "UTF8")).nextValue();
 			if (json instanceof JSONObject) {
 				jsonObject = (JSONObject) json;
 			} else if (json instanceof JSONArray) {
@@ -48,6 +34,10 @@ public class JSONResponse extends ProtocolResponseData {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
+		
+		handleResponse(jsonObject, jsonArray);
 	}
+	
+	public abstract void handleResponse(JSONObject jsonObject, JSONArray jsonArray);
 
 }

@@ -2,7 +2,7 @@ package com.joshdholtz.protocol.lib;
 
 import com.joshdholtz.protocol.lib.requests.JSONRequestData;
 import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
-import com.joshdholtz.protocol.lib.responses.JSONResponse;
+import com.joshdholtz.protocol.lib.responses.JSONResponseHandler;
 
 
 public class CustomClient extends ProtocolClient {
@@ -20,20 +20,20 @@ public class CustomClient extends ProtocolClient {
 		private static CustomClient instance = new CustomClient();
 	}
 	
-	public static ProtocolTask get(String route, ParamsRequestData requestData, final ProtocolResponseHandler<JSONResponse> responseHandler) {
-		return CustomClient.getInstance().doGet(route, requestData, JSONResponse.class, responseHandler);
+	public static ProtocolTask get(String route, ParamsRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doGet(route, requestData, responseHandler);
 	}
 	
-	public static ProtocolTask post(String route, JSONRequestData requestData, final ProtocolResponseHandler<JSONResponse> responseHandler) {
-		return CustomClient.getInstance().doPost(route, requestData, JSONResponse.class, responseHandler);
+	public static ProtocolTask post(String route, JSONRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doPost(route, requestData, responseHandler);
 	}
 	
-	public static ProtocolTask put(String route, JSONRequestData requestData, final ProtocolResponseHandler<JSONResponse> responseHandler) {
-		return CustomClient.getInstance().doPut(route, requestData, JSONResponse.class, responseHandler);
+	public static ProtocolTask put(String route, JSONRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doPut(route, requestData, responseHandler);
 	}
 	
-	public static ProtocolTask delete(String route, ParamsRequestData requestData, final ProtocolResponseHandler<JSONResponse> responseHandler) {
-		return CustomClient.getInstance().doDelete(route, requestData, JSONResponse.class, responseHandler);
+	public static ProtocolTask delete(String route, ParamsRequestData requestData, JSONResponseHandler responseHandler) {
+		return CustomClient.getInstance().doDelete(route, requestData, responseHandler);
 	}
 	
 }
