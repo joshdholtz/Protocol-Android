@@ -14,10 +14,10 @@ public class FileRequestData extends ProtocolRequestData {
 
 	private String boundary;
 	private Map<String, File> files;
-	private Map<String, String> params;
+	private Map<String, Object> params;
 	private String contentType;
 	
-	public FileRequestData(Map<String, String> params, Map<String, File> files) {
+	public FileRequestData(Map<String, Object> params, Map<String, File> files) {
 		this.params = params;
 		this.files = files;
 		boundary = "---------------------------14737809831466499882746641449";

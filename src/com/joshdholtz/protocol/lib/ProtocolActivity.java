@@ -15,10 +15,12 @@ import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolStatusListener;
 import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolTask;
 import com.joshdholtz.protocol.lib.R;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
+import com.joshdholtz.protocol.lib.models.MemberModel;
 import com.joshdholtz.protocol.lib.requests.FileRequestData;
 import com.joshdholtz.protocol.lib.requests.JSONRequestData;
 import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
 import com.joshdholtz.protocol.lib.responses.JSONResponseHandler;
+import com.joshdholtz.protocol.lib.responses.ModelResponseHandler;
 import com.joshdholtz.protocol.lib.responses.ProtocolResponseHandler;
 import com.joshdholtz.protocol.lib.responses.StringResponseHandler;
 
@@ -150,7 +152,7 @@ public class ProtocolActivity extends Activity {
 			
 		});
 		
-		CustomClient.getInstance().observeStatus(401, new ProtocolStatusListener() {
+		client.observeStatus(401, new ProtocolStatusListener() {
 
 			@Override
 			public boolean observedStatus(int status, ProtocolResponseHandler handler) {
@@ -159,7 +161,8 @@ public class ProtocolActivity extends Activity {
 			}
 			
 		});
-		CustomClient.getInstance().observeStatus(500, new ProtocolStatusListener() {
+		
+		client.observeStatus(500, new ProtocolStatusListener() {
 
 			@Override
 			public boolean observedStatus(int status, ProtocolResponseHandler handler) {
@@ -169,7 +172,7 @@ public class ProtocolActivity extends Activity {
 			
 		});
 		
-		CustomClient.get("/401", null, new JSONResponseHandler() {
+		client.doGet("/401", null, new JSONResponseHandler() {
 
 			@Override
 			public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
@@ -177,7 +180,8 @@ public class ProtocolActivity extends Activity {
 			}
 			
 		});
-		CustomClient.get("/500", null, new JSONResponseHandler() {
+		
+		client.doGet("/500", null, new JSONResponseHandler() {
 
 			@Override
 			public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
@@ -221,7 +225,7 @@ public class ProtocolActivity extends Activity {
 			
 		});
 		
-		Map<String, String> fileObjectData = new HashMap<String, String>();
+		Map<String, Object> fileObjectData = new HashMap<String, Object>();
 		fileObjectData.put("first_name", "Josh");
 		fileObjectData.put("last_name", "Holtz");
 		
@@ -239,6 +243,26 @@ public class ProtocolActivity extends Activity {
 					Toast.makeText(getApplication(), "POST file failure", Toast.LENGTH_SHORT).show();
 				}
 			}
+			
+		});
+		
+		ParamsRequestData requestData8 = new ParamsRequestData();
+		requestData8.addParam("body", "{\"first_name\":\"Josh\",\"last_name\":\"Holtz\"}");
+		client.doGet("/200", requestData8, new ModelResponseHandler<MemberModel>() {
+
+			@Override
+			public Class<MemberModel> getModelClass() { return MemberModel.class; }
+
+			@Override
+			public void handleResponse(MemberModel model) {
+				Toast.makeText(getApplication(), "Member name - " + model.getFirstName() + " " + model.getLastName(), Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void handleResponse(List<MemberModel> model) {}
+
+			@Override
+			public void handleError() {}
 			
 		});
 	}

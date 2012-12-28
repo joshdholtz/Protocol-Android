@@ -26,10 +26,35 @@ public abstract class ProtocolModel {
 		return instance;
 	}
 	
+	public static <T extends ProtocolModel>T createModel(Class<T> clazz, JSONObject object) {
+		T instance = null;
+		try {
+			instance = clazz.newInstance();
+			instance.initFromJSONObject(object);
+		} catch (Exception e) {
+			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + " from " + object);
+			e.printStackTrace();
+		}
+		
+		return instance;
+	}
+	
 	public static <T extends ProtocolModel>List<T> createModels(Class<T> clazz, String jsonData) {
 		List<T> instances = new ArrayList<T>();
 		try {
 			JSONArray array = new JSONArray(jsonData);
+			return ProtocolModel.createModels(clazz, array);
+		} catch (Exception e) {
+			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s - " + e.getClass() + " " + e.getMessage());
+			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s from " + jsonData);
+			e.printStackTrace();
+		}
+		return instances;
+	}
+	
+	public static <T extends ProtocolModel>List<T> createModels(Class<T> clazz, JSONArray array) {
+		List<T> instances = new ArrayList<T>();
+		try {
 			for (int i = 0; i < array.length(); ++i) {
 
 				JSONObject object = array.getJSONObject(i);
@@ -45,7 +70,6 @@ public abstract class ProtocolModel {
 			}
 		} catch (Exception e) {
 			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s - " + e.getClass() + " " + e.getMessage());
-			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s from " + jsonData);
 			e.printStackTrace();
 		}
 		

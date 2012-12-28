@@ -14,10 +14,11 @@ import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
 public abstract class JSONResponseHandler extends ProtocolResponseHandler {
 
+	JSONObject jsonObject;
+	JSONArray jsonArray;
+	
 	@Override
 	public void handleResponse(HttpResponse response, int status, byte[] data) {
-		JSONObject jsonObject = null;
-		JSONArray jsonArray = null;
 		
 		Log.d(ProtocolConstants.LOG_TAG, "IN JSON GENERATE RESPONSE");
 		try {
@@ -40,4 +41,18 @@ public abstract class JSONResponseHandler extends ProtocolResponseHandler {
 	
 	public abstract void handleResponse(JSONObject jsonObject, JSONArray jsonArray);
 
+	/**
+	 * @return the jsonObject
+	 */
+	public JSONObject getJsonObject() {
+		return jsonObject;
+	}
+
+	/**
+	 * @return the jsonArray
+	 */
+	public JSONArray getJsonArray() {
+		return jsonArray;
+	}
+	
 }

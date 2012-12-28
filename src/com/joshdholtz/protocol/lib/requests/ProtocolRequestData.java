@@ -37,7 +37,7 @@ public abstract class ProtocolRequestData {
 		return headers.containsKey(key);
 	}
 	
-	protected List<BasicNameValuePair> paramsToValuePairs(Map<String, String> params) {
+	protected List<BasicNameValuePair> paramsToValuePairs(Map<String, Object> params) {
 		List<BasicNameValuePair> nameValuePair = new ArrayList<BasicNameValuePair>();
 
 		List<String> keys = new ArrayList<String>(params.keySet());

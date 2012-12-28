@@ -13,15 +13,15 @@ import org.apache.http.protocol.HTTP;
 
 public class ParamsRequestData extends ProtocolRequestData {
 
-	private Map<String, String> params;
+	private Map<String, Object> params;
 	private String contentType;
 	
 	public ParamsRequestData() {
-		this.params = new HashMap<String, String>();
+		this.params = new HashMap<String, Object>();
 		contentType = "application/x-www-form-urlencoded";
 	}
 	
-	public ParamsRequestData(Map<String, String> params) {
+	public ParamsRequestData(Map<String, Object> params) {
 		this.params = params;
 		contentType = "application/x-www-form-urlencoded";
 	}
@@ -55,7 +55,7 @@ public class ParamsRequestData extends ProtocolRequestData {
 		}
 	}
 	
-	public Map<String, String> getParams() {
+	public Map<String, Object> getParams() {
 		return params;
 	}
 

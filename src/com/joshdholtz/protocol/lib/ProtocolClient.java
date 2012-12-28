@@ -72,7 +72,7 @@ public class ProtocolClient {
 		this.baseUrl = baseUrl;
 		headers = new HashMap<String, String>();
 		
-		timeout = 30000;
+		timeout = 60000;
 		
 		maxAsyncCount = 15;
 		
@@ -409,7 +409,7 @@ public class ProtocolClient {
 		return route;
 	}
 	
-	private String paramsToString(Map<String, String> params) {
+	private String paramsToString(Map<String, Object> params) {
 		String paramsStr = "";
 		if (params != null && params.size() > 0) {
 			paramsStr += "?";
