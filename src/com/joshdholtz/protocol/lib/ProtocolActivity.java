@@ -2,7 +2,9 @@ package com.joshdholtz.protocol.lib;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.json.JSONArray;
@@ -13,6 +15,8 @@ import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolStatusListener;
 import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolTask;
 import com.joshdholtz.protocol.lib.R;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
+import com.joshdholtz.protocol.lib.requests.FileRequestData;
+import com.joshdholtz.protocol.lib.requests.JSONRequestData;
 import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
 import com.joshdholtz.protocol.lib.responses.JSONResponseHandler;
 import com.joshdholtz.protocol.lib.responses.ProtocolResponseHandler;
@@ -127,6 +131,7 @@ public class ProtocolActivity extends Activity {
 			
 		});
 		
+		
 		ParamsRequestData requestData4 = new ParamsRequestData();
 		requestData4.addParam("body", "{\"name1\":\"value1\",\"name2\":\"value2\"}}");
 		CustomClient.get("/200", requestData4, new JSONResponseHandler() {
@@ -181,6 +186,61 @@ public class ProtocolActivity extends Activity {
 			
 		});
 		
+		ParamsRequestData requestData5 = new ParamsRequestData();
+		requestData5.addParam("first_name", "Josh");
+		requestData5.addParam("last_name", "Holtz");
+		client.doPost("/200", requestData5, new StringResponseHandler() {
+
+			@Override
+			public void handleResponse(String stringResponse) {
+				if (this.getStatus() == 200) {
+					Toast.makeText(getApplication(), "POST param success", Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(getApplication(), "POST params failure", Toast.LENGTH_SHORT).show();
+				}
+			}
+			
+		});
+		
+		Map<String, String> jsonObjectData = new HashMap<String, String>();
+		jsonObjectData.put("first_name", "Josh");
+		jsonObjectData.put("last_name", "Holtz");
+		JSONObject jsonObject = new JSONObject(jsonObjectData);
+		
+		JSONRequestData requestData6 = new JSONRequestData(jsonObject);
+		client.doPut("/200", requestData6, new StringResponseHandler() {
+
+			@Override
+			public void handleResponse(String stringResponse) {
+				if (this.getStatus() == 200) {
+					Toast.makeText(getApplication(), "POST json success", Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(getApplication(), "POST json failure", Toast.LENGTH_SHORT).show();
+				}
+			}
+			
+		});
+		
+		Map<String, String> fileObjectData = new HashMap<String, String>();
+		fileObjectData.put("first_name", "Josh");
+		fileObjectData.put("last_name", "Holtz");
+		
+		Map<String, File> filesData = new HashMap<String, File>();
+		filesData.put("file1", new File("../somepath.."));
+		
+		FileRequestData requestData7 = new FileRequestData(fileObjectData, filesData);
+		client.doPut("/200", requestData7, new StringResponseHandler() {
+
+			@Override
+			public void handleResponse(String stringResponse) {
+				if (this.getStatus() == 200) {
+					Toast.makeText(getApplication(), "POST file success", Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(getApplication(), "POST file failure", Toast.LENGTH_SHORT).show();
+				}
+			}
+			
+		});
 	}
 
 	private void uploadFile() {

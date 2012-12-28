@@ -1,6 +1,7 @@
 package com.joshdholtz.protocol.lib.requests;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
@@ -10,6 +11,11 @@ public class JSONRequestData extends ProtocolRequestData {
 
 	private String contentType;
 	private JSONObject json;
+	
+	public JSONRequestData(Map<String, String> map) {
+		this.json = new JSONObject(map);
+		contentType = "application/json";
+	}
 	
 	public JSONRequestData(JSONObject json) {
 		this.json = json;
