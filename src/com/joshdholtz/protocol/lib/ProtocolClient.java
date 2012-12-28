@@ -219,14 +219,11 @@ public class ProtocolClient {
 		if (requestData == null) {
 			requestData = new ParamsRequestData();
 		}
-		if (clazz == null) {
-			
-		}
 		
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
-		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_GET, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_GET, route, requestData, timeout, new ProtocolClientGotResponse(clazz, responseHandler));
 		this.executeProtocolConnectTask(task);
 		
 		return task;
@@ -263,7 +260,7 @@ public class ProtocolClient {
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
-		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_POST, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_POST, route, requestData, timeout, new ProtocolClientGotResponse(clazz, responseHandler));
 		this.executeProtocolConnectTask(task);
 		
 		return task;
@@ -286,7 +283,7 @@ public class ProtocolClient {
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
-		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_PUT, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_PUT, route, requestData, timeout, new ProtocolClientGotResponse(clazz, responseHandler));
 		this.executeProtocolConnectTask(task);
 		
 		return task;
@@ -313,24 +310,30 @@ public class ProtocolClient {
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
-		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_DELETE, route, requestData, timeout, new ProtocolGotResponse(clazz, responseHandler), null, null);
+		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_DELETE, route, requestData, timeout, new ProtocolClientGotResponse(clazz, responseHandler));
 		this.executeProtocolConnectTask(task);
 		
 		return task;
 	}
 	
-	private class ProtocolGotResponse extends GotResponse {
+	private class ProtocolClientGotResponse extends ProtocolGotResponse {
 		
 		private Class<? extends ProtocolResponseData> clazz;
 		private ProtocolResponseHandler responseHandler;
 		
-		public ProtocolGotResponse(Class<? extends ProtocolResponseData> clazz, ProtocolResponseHandler responseHandler) {
+		public ProtocolClientGotResponse() {
+			
+		}
+		
+		public ProtocolClientGotResponse(Class<? extends ProtocolResponseData> clazz, ProtocolResponseHandler responseHandler) {
 			this.responseHandler = responseHandler;
 			this.clazz = clazz;
 		}
 		
 		@Override
 		public void handleResponse(HttpResponse response, int status, byte[] data) {
+			finishedProtocolConnectTask();
+			
 			if (debug) {
 				Log.d(ProtocolConstants.LOG_TAG, "POST - " + status + ", " + data);
 			}
@@ -355,11 +358,6 @@ public class ProtocolClient {
 					e.printStackTrace();
 				}
 			}
-		}
-		
-		@Override
-		public void handleResponse(HttpResponse response, int status, InputStream in) {
-			
 		}
 		
 	}
@@ -462,7 +460,7 @@ public class ProtocolClient {
 		public boolean observedStatus(int status);
 	}
 	
-	public class ProtocolTask extends AsyncTask<Void, Void, HttpResponse> {
+	public static class ProtocolTask extends AsyncTask<Void, Void, HttpResponse> {
 
 		private HttpMethod method;
 		private String route;
@@ -471,9 +469,7 @@ public class ProtocolClient {
 		private HttpEntity entity;
 		private Timer timer;
 		private int timeout;
-		private GotResponse handler;
-		private Context context;
-		private Intent broadcastIntent;
+		private ProtocolGotResponse handler;
 		
 		private HttpUriRequest httpUriRequest;
 		
@@ -482,9 +478,17 @@ public class ProtocolClient {
 		
 		private Handler threadHandler = new Handler();
 		
-		public ProtocolTask(HttpMethod method, String route, ProtocolRequestData requestData, int timeout, GotResponse handler, Context context, Intent broadcastIntent) {
+		public ProtocolTask(HttpMethod method, String route, ProtocolRequestData requestData, ProtocolGotResponse handler) {
+			this(method, route, requestData, 60000, handler);
+		}
+		
+		public ProtocolTask(HttpMethod method, String route, ProtocolRequestData requestData, int timeout, ProtocolGotResponse handler) {
 			if (requestData == null) {
 				Log.d(ProtocolConstants.LOG_TAG, "REQUEST DATA IS NULL");
+			}
+			
+			if (requestData == null) {
+				requestData = new ParamsRequestData();
 			}
 			
 			this.method = method;
@@ -494,8 +498,6 @@ public class ProtocolClient {
 			this.entity = requestData.getEntity();
 			this.timeout = timeout;
 			this.handler = handler;
-			this.context = context;
-			this.broadcastIntent = broadcastIntent;
 			
 			if (headers == null) {
 				headers = new HashMap<String, String>();
@@ -533,14 +535,6 @@ public class ProtocolClient {
 					case HTTP_DELETE:
 						httpUriRequest = new HttpDelete(route);
 						break;
-					case HTTP_POST_FILE:
-						HttpPost httpPostFileRequest = new HttpPost(route);
-						httpPostFileRequest.setEntity(entity);
-						httpUriRequest = httpPostFileRequest;
-						
-						httpUriRequest.addHeader("Content-Type", contentType);
-						
-						break;
 				}
 			
 				Iterator<Entry<String,String>> it = headers.entrySet().iterator();
@@ -574,8 +568,7 @@ public class ProtocolClient {
 				}
 				
 				return httpResponse;
-
-//				return command.unpackageJSON(out.toString());
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -593,10 +586,6 @@ public class ProtocolClient {
 					handler.handleResponse(null, -1, new byte[0]);
 					Log.d("", "ServerConnect - aborting request from cancel");
 				}
-				if (context != null && broadcastIntent != null) {
-					broadcastIntent.putExtra(ProtocolClient.BROADCAST_DATA_STATUS, -1);
-					context.sendBroadcast(broadcastIntent);
-				}
 				
 			}
 		}
@@ -605,34 +594,13 @@ public class ProtocolClient {
 		protected void onPostExecute(HttpResponse httpResponse) {
 			timer.cancel();
 			
-			finishedProtocolConnectTask();
-			
 			if (this.isCancelled() || httpResponse == null) {
-				String nullStr = null;
 				if (handler != null) {
 					handler.handleResponse(null, status, new byte[0]);
-				}
-				if (context != null && broadcastIntent != null) {
-					broadcastIntent.putExtra(ProtocolClient.BROADCAST_DATA_STATUS, -1);
-					context.sendBroadcast(broadcastIntent);
 				}
 			} else {
 				if (handler != null) {
 					handler.handleResponse(httpResponse, status, byteResp);
-				}
-				if (context != null && broadcastIntent != null) {
-					HashMap<String, String> headersMap = new HashMap<String, String>();
-					
-					Header[] headers = httpResponse.getAllHeaders();
-					for (int i = 0; i < headers.length; ++i) {
-						Header header = headers[i];
-						headersMap.put(header.getName(), header.getValue());
-					}
-					
-//					broadcastIntent.putExtra(ProtocolClient.BROADCAST_DATA_HEADERS, headersMap);
-//					broadcastIntent.putExtra(ProtocolClient.BROADCAST_DATA_STATUS, status);
-//					broadcastIntent.putExtra(ProtocolClient.BROADCAST_DATA_RESPONSE, stringResp);
-//					context.sendBroadcast(broadcastIntent);
 				}
 			}
 		}
@@ -666,9 +634,8 @@ public class ProtocolClient {
 
 	}
 	
-	private abstract class GotResponse {
+	public static abstract class ProtocolGotResponse {
 		public abstract void handleResponse(HttpResponse response, int status, byte[] data);
-		public abstract void handleResponse(HttpResponse response, int status, InputStream in);
 	}
 	
 	private class ProtocolConnectBitmapTask extends AsyncTask<Void, Void, Bitmap> {

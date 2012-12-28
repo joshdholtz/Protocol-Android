@@ -18,6 +18,7 @@ public class ParamsRequestData extends ProtocolRequestData {
 	
 	public ParamsRequestData() {
 		this.params = new HashMap<String, String>();
+		contentType = "application/x-www-form-urlencoded";
 	}
 	
 	public ParamsRequestData(Map<String, String> params) {
