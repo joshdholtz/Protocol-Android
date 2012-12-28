@@ -8,20 +8,10 @@ public abstract class ProtocolResponseHandler {
 	private int status;
 	private byte[] data;
 	
-	/**
-	 * Sets the response, status, and data and executes the handleResponse method for
-	 * this class and any child classes. 
-	 * 
-	 * @param response
-	 * @param status
-	 * @param data
-	 */
-	public void generateResponse(HttpResponse response, int status, byte[] data) {
+	public void init(HttpResponse response, int status, byte[] data) {
 		this.response = response;
 		this.status = status;
 		this.data = data;
-		
-		handleResponse(response, status, data);
 	}
 	
 	/**

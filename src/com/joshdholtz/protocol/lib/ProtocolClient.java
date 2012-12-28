@@ -17,7 +17,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Map.Entry;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -30,7 +29,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
@@ -331,7 +329,19 @@ public class ProtocolClient {
 		@Override
 		public void handleResponse(HttpResponse response, int status, byte[] data) {
 			finishedProtocolConnectTask();
-			handler.generateResponse(response, status, data);
+			
+			handler.init(response, status, data);
+			
+			ProtocolStatusListener statusListener = observedStatuses.get(status);
+			boolean executeHandler = true;
+			
+			if (statusListener != null) {
+				executeHandler = statusListener.observedStatus(status, handler);
+			}
+			
+			if (executeHandler) {
+				handler.handleResponse(response, status, data);
+			}
 		}
 		
 	}
@@ -430,8 +440,9 @@ public class ProtocolClient {
 		return nameValuePair;
 	}
 	
-	public interface ProtocolStatusListener {
-		public boolean observedStatus(int status);
+	public static abstract class ProtocolStatusListener {
+
+		public abstract boolean observedStatus(int status, ProtocolResponseHandler handler);;
 	}
 	
 	public static class ProtocolTask extends AsyncTask<Void, Void, HttpResponse> {
@@ -557,7 +568,8 @@ public class ProtocolClient {
 				
 				String nullStr = null;
 				if (handler != null) {
-					handler.generateResponse(null, -1, new byte[0]);
+					handler.init(null, -1, new byte[0]);
+					handler.handleResponse(null, status, new byte[0]);
 					Log.d("", "ServerConnect - aborting request from cancel");
 				}
 				
@@ -570,11 +582,13 @@ public class ProtocolClient {
 			
 			if (this.isCancelled() || httpResponse == null) {
 				if (handler != null) {
-					handler.generateResponse(null, status, new byte[0]);
+					handler.init(null, status, new byte[0]);
+					handler.handleResponse(null, status, new byte[0]);
 				}
 			} else {
 				if (handler != null) {
-					handler.generateResponse(httpResponse, status, byteResp);
+					handler.init(httpResponse, status, byteResp);
+					handler.handleResponse(httpResponse, status, byteResp);
 				}
 			}
 		}

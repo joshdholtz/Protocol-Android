@@ -1,8 +1,12 @@
 package com.joshdholtz.protocol.lib;
 
+import android.widget.Toast;
+
+import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolStatusListener;
 import com.joshdholtz.protocol.lib.requests.JSONRequestData;
 import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
 import com.joshdholtz.protocol.lib.responses.JSONResponseHandler;
+import com.joshdholtz.protocol.lib.responses.ProtocolResponseHandler;
 
 
 public class CustomClient extends ProtocolClient {
@@ -10,6 +14,7 @@ public class CustomClient extends ProtocolClient {
 	private CustomClient() {
 		super();
 		this.setBaseUrl("http://www.statuscodewhat.com");
+		
 	}
 	
 	public static CustomClient getInstance() {

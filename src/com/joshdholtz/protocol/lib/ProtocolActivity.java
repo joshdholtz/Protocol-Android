@@ -1,7 +1,6 @@
 package com.joshdholtz.protocol.lib;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolGotResponse;
+import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolStatusListener;
 import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolTask;
 import com.joshdholtz.protocol.lib.R;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
@@ -54,6 +53,7 @@ public class ProtocolActivity extends Activity {
 		task.execute();
 		
 		ProtocolClient client = new ProtocolClient("http://www.statuscodewhat.com");
+		
 		client.addHeader("client_test_request_header", "client_test_request_header_value");
 		client.addHeader("client_test_request_header_override", "THIS SHOULDN'T SHOW");
 		
@@ -141,6 +141,42 @@ public class ProtocolActivity extends Activity {
 						e.printStackTrace();
 					}
 				}
+			}
+			
+		});
+		
+		CustomClient.getInstance().observeStatus(401, new ProtocolStatusListener() {
+
+			@Override
+			public boolean observedStatus(int status, ProtocolResponseHandler handler) {
+				Toast.makeText(getApplication(), "You are not logged in; We observed a status - " + status, Toast.LENGTH_SHORT).show();
+				return false;
+			}
+			
+		});
+		CustomClient.getInstance().observeStatus(500, new ProtocolStatusListener() {
+
+			@Override
+			public boolean observedStatus(int status, ProtocolResponseHandler handler) {
+				Toast.makeText(getApplication(), "We got a server error; We observed a status - " + status, Toast.LENGTH_SHORT).show();
+				return true;
+			}
+			
+		});
+		
+		CustomClient.get("/401", null, new JSONResponseHandler() {
+
+			@Override
+			public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
+				Toast.makeText(getApplication(), "The ProtocolStatusListener should catch this 401 and not show this toast", Toast.LENGTH_SHORT).show();
+			}
+			
+		});
+		CustomClient.get("/500", null, new JSONResponseHandler() {
+
+			@Override
+			public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
+				Toast.makeText(getApplication(), "The ProtocolStatusListener should catch this 500 and show this toast", Toast.LENGTH_SHORT).show();
 			}
 			
 		});
