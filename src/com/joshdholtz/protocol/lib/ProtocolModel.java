@@ -1,5 +1,7 @@
 package com.joshdholtz.protocol.lib;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,7 @@ public abstract class ProtocolModel {
 	
 	public static <T extends ProtocolModel>T createModel(Class<T> clazz, String jsonData) {
 		T instance = null;
+		
 		try {
 			instance = clazz.newInstance();
 			instance.initFromJSONString(jsonData);
@@ -78,6 +81,10 @@ public abstract class ProtocolModel {
 	
 	public ProtocolModel() {
 		
+	}
+	
+	public ProtocolModel(String jsonString) {
+		this.initFromJSONString(jsonString);
 	}
 	
 	public ProtocolModel(JSONObject jsonObject) {

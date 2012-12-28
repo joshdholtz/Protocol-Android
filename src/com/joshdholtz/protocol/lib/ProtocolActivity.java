@@ -251,9 +251,6 @@ public class ProtocolActivity extends Activity {
 		client.doGet("/200", requestData8, new ModelResponseHandler<MemberModel>() {
 
 			@Override
-			public Class<MemberModel> getModelClass() { return MemberModel.class; }
-
-			@Override
 			public void handleResponse(MemberModel model) {
 				Toast.makeText(getApplication(), "Member name - " + model.getFirstName() + " " + model.getLastName(), Toast.LENGTH_SHORT).show();
 			}
