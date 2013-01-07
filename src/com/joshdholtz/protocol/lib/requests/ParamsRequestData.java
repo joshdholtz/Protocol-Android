@@ -11,6 +11,10 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 
+import android.util.Log;
+
+import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
+
 public class ParamsRequestData extends ProtocolRequestData {
 
 	private Map<String, Object> params;
@@ -57,6 +61,16 @@ public class ParamsRequestData extends ProtocolRequestData {
 	
 	public Map<String, Object> getParams() {
 		return params;
+	}
+
+	@Override
+	public void log() {
+		Log.d(ProtocolConstants.LOG_TAG, "\tPARAMS:");
+		if (params != null) {
+			for (String param : params.keySet()) {
+				Log.d(ProtocolConstants.LOG_TAG, "\t\t" + param + " - " + params.get(param));	
+			}
+		}
 	}
 
 }

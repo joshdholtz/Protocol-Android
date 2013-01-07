@@ -1,5 +1,11 @@
 package com.joshdholtz.protocol.lib.responses;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+
 import org.apache.http.HttpResponse;
 
 public abstract class ProtocolResponseHandler {
@@ -33,6 +39,23 @@ public abstract class ProtocolResponseHandler {
 	 */
 	public byte[] getData() {
 		return data;
+	}
+	
+	@Override
+	public String toString() {
+		String stringResponse = "";
+		
+		Charset charsetInput = Charset.forName("UTF-8");
+		CharsetDecoder decoder = charsetInput.newDecoder();
+		CharBuffer cbuf = null;
+		try {
+			cbuf = decoder.decode(ByteBuffer.wrap(data));
+			stringResponse = cbuf.toString();
+		} catch (CharacterCodingException e) {
+			e.printStackTrace();
+		}
+		
+		return stringResponse;
 	}
 
 	public abstract void handleResponse(HttpResponse response, int status, byte[] data);

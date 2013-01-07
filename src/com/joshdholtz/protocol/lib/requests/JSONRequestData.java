@@ -7,6 +7,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
+import android.util.Log;
+
+import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
+
 public class JSONRequestData extends ProtocolRequestData {
 
 	private String contentType;
@@ -37,6 +41,14 @@ public class JSONRequestData extends ProtocolRequestData {
 	@Override
 	public String getContentType() {
 		return contentType;
+	}
+
+	@Override
+	public void log() {
+		Log.d(ProtocolConstants.LOG_TAG, "\tJSON:");
+		if (json != null) {
+			Log.d(ProtocolConstants.LOG_TAG, "\t\t" + json.toString());	
+		}
 	}
 
 }

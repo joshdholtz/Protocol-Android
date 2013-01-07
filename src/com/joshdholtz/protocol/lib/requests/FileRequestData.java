@@ -8,7 +8,10 @@ import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.util.Log;
+
 import com.joshdholtz.protocol.lib.ProtocolMultipartEntity;
+import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
 public class FileRequestData extends ProtocolRequestData {
 
@@ -33,6 +36,22 @@ public class FileRequestData extends ProtocolRequestData {
 	@Override
 	public String getContentType() {
 		return contentType;
+	}
+
+	@Override
+	public void log() {
+		Log.d(ProtocolConstants.LOG_TAG, "\tPARAMS:");
+		if (params != null) {
+			for (String param : params.keySet()) {
+				Log.d(ProtocolConstants.LOG_TAG, "\t\t" + param + " - " + params.get(param));	
+			}
+		}
+		Log.d(ProtocolConstants.LOG_TAG, "\tFILES:");
+		if (files != null) {
+			for (String file : files.keySet()) {
+				Log.d(ProtocolConstants.LOG_TAG, "\t\t" + file + " - " + files.get(file).getAbsolutePath());	
+			}
+		}
 	}
 
 }

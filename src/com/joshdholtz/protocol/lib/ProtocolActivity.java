@@ -59,6 +59,7 @@ public class ProtocolActivity extends Activity {
 		task.execute();
 		
 		ProtocolClient client = new ProtocolClient("http://www.statuscodewhat.com");
+		client.setDebug(true);
 		
 		client.addHeader("client_test_request_header", "client_test_request_header_value");
 		client.addHeader("client_test_request_header_override", "THIS SHOULDN'T SHOW");

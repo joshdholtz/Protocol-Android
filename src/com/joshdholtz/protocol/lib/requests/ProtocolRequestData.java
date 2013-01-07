@@ -8,12 +8,17 @@ import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.util.Log;
+
+import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
+
 public abstract class ProtocolRequestData {
 	
 	private Map<String, String> headers;
 	
 	public abstract String getContentType();
 	public abstract HttpEntity getEntity();
+	public abstract void log();
 	
 	public Map<String, String> getHeaders() {
 		return headers;
@@ -46,6 +51,15 @@ public abstract class ProtocolRequestData {
 		}
 		
 		return nameValuePair;
+	}
+	
+	public void logHeaders() {
+		Log.d(ProtocolConstants.LOG_TAG, "\tHEADERS:");
+		if (headers != null) {
+			for (String header : headers.keySet()) {
+				Log.d(ProtocolConstants.LOG_TAG, "\t\t" + header + " - " + headers.get(header));	
+			}
+		}
 	}
 	
 }

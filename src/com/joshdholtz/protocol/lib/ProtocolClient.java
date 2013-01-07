@@ -225,6 +225,12 @@ public class ProtocolClient {
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
+		if (debug) {
+			Log.d(ProtocolConstants.LOG_TAG, "ROUTE: GET - " + route);
+			requestData.logHeaders();
+			requestData.log();
+		}
+		
 		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_GET, route, requestData, timeout, new ProtocolClientResponseHandler(responseHandler));
 		this.executeProtocolConnectTask(task);
 		
@@ -266,6 +272,12 @@ public class ProtocolClient {
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
+		if (debug) {
+			Log.d(ProtocolConstants.LOG_TAG, "ROUTE: POST - " + route);
+			requestData.logHeaders();
+			requestData.log();
+		}
+		
 		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_POST, route, requestData, timeout, new ProtocolClientResponseHandler(responseHandler));
 		this.executeProtocolConnectTask(task);
 		
@@ -292,6 +304,12 @@ public class ProtocolClient {
 		
 		// Adds global headers
 		addHeadersToRequest(requestData);
+		
+		if (debug) {
+			Log.d(ProtocolConstants.LOG_TAG, "ROUTE: PUT - " + route);
+			requestData.logHeaders();
+			requestData.log();
+		}
 		
 		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_PUT, route, requestData, timeout, new ProtocolClientResponseHandler(responseHandler));
 		this.executeProtocolConnectTask(task);
@@ -322,6 +340,12 @@ public class ProtocolClient {
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
+		if (debug) {
+			Log.d(ProtocolConstants.LOG_TAG, "ROUTE: DELETE - " + route);
+			requestData.logHeaders();
+			requestData.log();
+		}
+		
 		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_DELETE, route, requestData, timeout, new ProtocolClientResponseHandler(responseHandler));
 		this.executeProtocolConnectTask(task);
 		
@@ -339,6 +363,11 @@ public class ProtocolClient {
 		@Override
 		public void handleResponse(HttpResponse response, int status, byte[] data) {
 			finishedProtocolConnectTask();
+			
+			if (debug) {
+				Log.d(ProtocolConstants.LOG_TAG, "RESPONSE CODE: " + status);
+				Log.d(ProtocolConstants.LOG_TAG, "RESPONSE: " + this.toString());
+			}
 			
 			handler.init(response, status, data);
 			
@@ -542,10 +571,7 @@ public class ProtocolClient {
 			    if (contentType != null) {
 					httpUriRequest.setHeader("Content-Type", contentType);
 				}
-				
-				Log.d(ProtocolConstants.LOG_TAG, "Content-Type: " + contentType);
-				
-				Log.d(ProtocolConstants.LOG_TAG, method.toString() + " - " + route);
+
 				HttpResponse httpResponse = httpClient.execute(httpUriRequest);
 				
 				status = httpResponse.getStatusLine().getStatusCode();
