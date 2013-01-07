@@ -259,6 +259,10 @@ public class ProtocolClient {
 	public ProtocolTask doPost(String route, ProtocolRequestData requestData, ProtocolResponseHandler responseHandler) {
 		route = this.formatRoute(route);
 		
+		if (requestData == null) {
+			requestData = new ParamsRequestData();
+		}
+		
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
@@ -282,6 +286,10 @@ public class ProtocolClient {
 	public ProtocolTask doPut(String route, ProtocolRequestData requestData, ProtocolResponseHandler responseHandler) {
 		route = this.formatRoute(route);
 		
+		if (requestData == null) {
+			requestData = new ParamsRequestData();
+		}
+		
 		// Adds global headers
 		addHeadersToRequest(requestData);
 		
@@ -303,7 +311,9 @@ public class ProtocolClient {
 	 */
 	public ProtocolTask doDelete(String route, ParamsRequestData requestData, ProtocolResponseHandler responseHandler) {
 		route = this.formatRoute(route);
-		route = route + this.paramsToString(requestData.getParams());
+		if (requestData != null) {
+			route = route + this.paramsToString(requestData.getParams());
+		}
 		
 		if (requestData == null) {
 			requestData = new ParamsRequestData();

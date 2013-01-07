@@ -63,11 +63,11 @@ public class ProtocolActivity extends Activity {
 		client.addHeader("client_test_request_header", "client_test_request_header_value");
 		client.addHeader("client_test_request_header_override", "THIS SHOULDN'T SHOW");
 		
-		client.doGet("/200?body=HelloWorld", null, new StringResponseHandler() {
+		client.doGet("/200?body=", null, new StringResponseHandler() {
 
 			@Override
 			public void handleResponse(String stringResponse) {
-				Toast.makeText(getApplication(), stringResponse, Toast.LENGTH_SHORT).show();
+				Toast.makeText(getApplication(), "Empty body - " + stringResponse, Toast.LENGTH_SHORT).show();
 			}
 
 			

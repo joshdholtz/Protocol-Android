@@ -12,7 +12,7 @@ public class JSONRequestData extends ProtocolRequestData {
 	private String contentType;
 	private JSONObject json;
 	
-	public JSONRequestData(Map<String, String> map) {
+	public JSONRequestData(Map<String, Object> map) {
 		this.json = new JSONObject(map);
 		contentType = "application/json";
 	}
