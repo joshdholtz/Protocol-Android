@@ -19,7 +19,7 @@ client.doGet("/200?body={\"name1\":\"value1\"}", requestData1, new JSONResponseH
 ````
 
 ## How To Get Started
-- Download the [Protocol JAR](https://s3.amazonaws.com/protocol-android/protocol-v1.0.0.jar)
+- Download the [Protocol JAR](https://s3.amazonaws.com/protocol-android/protocol-v1.0.1.jar)
 - Place the JAR in the Android project's "libs" directory
 - Code
 
