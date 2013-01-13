@@ -1,19 +1,11 @@
 # Protocol - Android Networking Library
 Protocol is a simple networking library for Android 2.1 and above. Protocol is built off of Android's AsyncTask and DefaultHttpClient.
 
-* Protocol’s documented features:
-	* ProtocolTask - the core that uses AsyncTask and DefaultHttpClient
-	* ProtocolClient - makes calling ProtocolTask simpler and gives functionality to add headers to all request, observe HTTP status codes, debug mode, and more
-	* ProtocolRequestData - formats query parameters and POST/PUT body (comes with ParamsRequestData, JSONRequestData, and FileRequestData)
-	* ProtocolResponseData - parses the response to your likings (comes with ProtocolResponseData, StringResponseData, JSONResponseData, and ModelResponseData)
-* Protocol’s undocumented features (documentation to come):
-	* ProtocolModel - takes a JSON string or JSONObject to instantiate a data object based of developer defined mappings (the ModelResponseData uses these models)
-
 Below is an example of how to get a JSON from a request.
 
 ```` java
 ProtocolClient client = new ProtocolClient("http://www.statuscodewhat.com");
-client.doGet("/200?body={\"name1\":\"value1\"}", requestData1, new JSONResponseHandler() {
+client.doGet("/200?body={\"name1\":\"value1\"}", null, new JSONResponseHandler() {
 
 	@Override
 	public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
@@ -29,7 +21,7 @@ client.doGet("/200?body={\"name1\":\"value1\"}", requestData1, new JSONResponseH
 ````
 
 ## How To Get Started
-- Download the [Protocol JAR](https://s3.amazonaws.com/protocol-android/protocol-v1.0.1.jar)
+- Download the [Protocol JAR](https://s3.amazonaws.com/protocol-android/protocol-v1.0.3.jar)
 - Place the JAR in the Android project's "libs" directory
 - Code
 
@@ -40,6 +32,8 @@ client.doGet("/200?body={\"name1\":\"value1\"}", requestData1, new JSONResponseH
 	* [ProtocolClient - Request Types](#section_protocol_client_request)
 	* [ProtocolClient - Observe Statuses](#section_protocol_client_statuses)
 	* [Custom ProtocolClient](#section_protocol_client_custom)
+* [Model Examples](#section_model_examples)
+	* [ProtocolModel - Map response to Java object](#section_protocol_model)
 
 <a name='section_examples'></a>
 ## Examples
@@ -306,5 +300,48 @@ public class CustomClient extends ProtocolClient {
 	}
 	
 }
+
+````
+
+<a name='section_model_examples'></a>
+## Using ProtocolModel and adding custom formats
+
+<a name='section_protocol_model'></a>
+### ProtocolModel maps your JSON response to a Java object
+
+#### MemberModel.java
+```` java
+public class MemberModel extends ProtocolModel {
+
+	@ModelMap(key = "first_name")		public String firstName;
+	@ModelMap(key = "last_name")		public String lastName;
+	@ModelMap(key = "age")				public int age;
+	@ModelMap(key = "awesome_level")	public double awesomeLevel;
+	@ModelMap(key = "cool")				public boolean cool;
+	
+}
+
+````
+
+#### SomeActivity.java
+```` java
+// Builds a member model off of a JSON string
+MemberModel member = ProtocolModel.createModel(MemberModel.class, 
+	"{\"first_name\":\"Josh\"," +
+	"\"last_name\":\"Holtz\"," +
+	"\"age\":4," +
+	"\"awesome_level\":\"4.6\"," +
+	"\"cool\":true," +
+	"\"dob\":\"2012-10-12T22:55:20+00:00\"" + 
+	"}");
+		
+// Displays member information in a Toast
+Toast.makeText(getApplication(), "First Name - " + member.firstName + 
+		"\nLast Name " + member.lastName + 
+		"\nAge " + member.age + 
+		"\nAwesome level " + member.awesomeLevel + 
+		"\nCool " + member.cool +
+		"\nBirthday " + member.birthday,
+		Toast.LENGTH_LONG).show();
 
 ````
