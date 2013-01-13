@@ -304,7 +304,7 @@ public class CustomClient extends ProtocolClient {
 ````
 
 <a name='section_model_examples'></a>
-## Using ProtocolClient and different response types
+## Using ProtocolModel and adding custom formats
 
 <a name='section_protocol_model'></a>
 ### ProtocolModel maps your JSON response to a Java object
