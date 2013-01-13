@@ -10,6 +10,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import android.util.Log;
 
+import com.joshdholtz.protocol.lib.helpers.Base64;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
 public abstract class ProtocolRequestData {
@@ -26,6 +27,14 @@ public abstract class ProtocolRequestData {
 	
 	public void setHeaders(Map<String, String> headers) {
 		this.headers = headers;
+	}
+	
+	public void addBasicAuthHeader(String valueToBeBase64Encoded) {
+		addHeader("Authorization", "Basic: " + Base64.encodeToString(valueToBeBase64Encoded.getBytes(), Base64.NO_WRAP));
+	}
+	
+	public void addBearerAuthHeader(String value) {
+		addHeader("Authorization", "Bearer " + value);
 	}
 	
 	public void addHeader(String key, String value) {

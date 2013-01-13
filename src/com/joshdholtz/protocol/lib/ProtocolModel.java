@@ -1,14 +1,21 @@
 package com.joshdholtz.protocol.lib;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.joshdholtz.protocol.lib.ProtocolModelFormats.ModelMap;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
 import android.util.Log;
@@ -108,50 +115,52 @@ public abstract class ProtocolModel {
 	public boolean initFromJSONObject(JSONObject object) {
 		boolean success = true;
 		
+		for(Field field : this.getClass().getDeclaredFields()){
+			 String name = field.getName();
+			 
+			 Annotation[] annotations = field.getAnnotations();
+			 
+			 if (field.isAnnotationPresent(ModelMap.class)) {
+				ModelMap map = field.getAnnotation(ModelMap.class);
+				try {
+					Log.d(ProtocolConstants.LOG_TAG, "Tried to set - " + name + " to " + map.key());
+					field.setAccessible(true);
+					if (map.format().equals("default")) {
+						field.set(this, object.get(map.key()));
+					} else {
+						field.set(this, ProtocolModelFormats.get(map.format(), object.get(map.key())));
+					}
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			 }
+		}
+		
 		JSONArray names = object.names();
 		for (int i = 0; i < names.length(); ++i) {
 			try {
-				
+
 				String key = names.getString(i);
 				if (!object.isNull(key)) {
 					this.mapToClass(key, object.get(key));
-				
-//					Log.d(ProtocolConstants.LOG_TAG, "Value of " + key);
-//					if (this.getKeyToVariableMap() != null) {
-//						String variable = this.getKeyToVariableMap().get(key);
-//						
-//						Class c = this.getClass();
-//	 
-//						try {
-//				        	Field field = c.getDeclaredField(variable);
-//						} catch (Exception e) {
-//							
-//						}
-//	 
-////				        field.setAccessible(true);
-////				        Log.d(ProtocolConstants.LOG_TAG, "Value of " + variable + ": " + field.get(this));
-//	
-//					}
 				}
 				
 			} catch (JSONException e) {
 				success = false;
 				e.printStackTrace();
-			} catch (SecurityException e) {
-				e.printStackTrace();
-//			} catch (NoSuchFieldException e) {
-//				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-//			} catch (IllegalAccessException e) {
-//				e.printStackTrace();
 			}
 		}
 		
 		return success;
 	}
-
-	public abstract void mapToClass(String key, Object value);
-//	public abstract Map<String, String> getKeyToVariableMap();
+	
+	public void mapToClass(String key, Object value) {
+	}
 	
 }

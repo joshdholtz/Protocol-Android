@@ -1,6 +1,8 @@
 package com.joshdholtz.protocol.lib;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +15,9 @@ import org.json.JSONObject;
 
 import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolStatusListener;
 import com.joshdholtz.protocol.lib.ProtocolClient.ProtocolTask;
+import com.joshdholtz.protocol.lib.ProtocolModelFormats.MapFormat;
 import com.joshdholtz.protocol.lib.R;
+import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
 import com.joshdholtz.protocol.lib.models.MemberModel;
 import com.joshdholtz.protocol.lib.requests.FileRequestData;
@@ -32,6 +36,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -46,6 +51,38 @@ public class ProtocolActivity extends Activity {
 		setContentView(R.layout.main);
 
 		img = (ImageView) this.findViewById(R.id.img);
+		
+		// Adds custom model mapping
+		ProtocolModelFormats.set("date", new MapFormat() {
+
+			@Override
+			public Object format(Object value) {
+				Log.d(ProtocolConstants.LOG_TAG, "Am I here?");
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ssZ");
+				try {
+					return sdf.parse(value.toString());
+				} catch (ParseException e) {e.printStackTrace();}
+				return null;
+			}
+			
+		});
+		
+		// Test model mapping
+		MemberModel member = ProtocolModel.createModel(MemberModel.class, 
+				"{\"first_name\":\"Josh\"," +
+				"\"last_name\":\"Holtz\"," +
+				"\"age\":4," +
+				"\"awesome_level\":\"4.6\"," +
+				"\"cool\":true," +
+				"\"dob\":\"2012-10-12T22:55:20+00:00\"" + 
+				"}");
+		Toast.makeText(getApplication(), "First Name - " + member.getFirstName() + 
+				"\nLast Name " + member.getLastName() + 
+				"\nAge " + member.getAge() + 
+				"\nAwesome level " + member.getAwesomeLevel() + 
+				"\nCool " + member.isCool() +
+				"\nBirthday " + member.getBirthday(),
+				Toast.LENGTH_LONG).show();
 		
 		ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_GET, "http://www.statuscodewhat.com/200?body=HelloWorldddd", null, new ProtocolResponseHandler() {
 
