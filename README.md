@@ -1,5 +1,15 @@
 # Protocol - Android Networking Library
-Protocol is a simple networking library for Android 2.1 and above. Protocol is built off of Android's AsyncTask and DefaultHttpClient. Below is an example of how to get a JSON from a request.
+Protocol is a simple networking library for Android 2.1 and above. Protocol is built off of Android's AsyncTask and DefaultHttpClient.
+
+* Protocol’s documented features:
+	* ProtocolTask - the core that uses AsyncTask and DefaultHttpClient
+	* ProtocolClient - makes calling ProtocolTask simpler and gives functionality to add headers to all request, observe HTTP status codes, debug mode, and more
+	* ProtocolRequestData - formats query parameters and POST/PUT body (comes with ParamsRequestData, JSONRequestData, and FileRequestData)
+	* ProtocolResponseData - parses the response to your likings (comes with ProtocolResponseData, StringResponseData, JSONResponseData, and ModelResponseData)
+* Protocol’s undocumented features (documentation to come):
+	* ProtocolModel - takes a JSON string or JSONObject to instantiate a data object based of developer defined mappings (the ModelResponseData uses these models)
+
+Below is an example of how to get a JSON from a request.
 
 ```` java
 ProtocolClient client = new ProtocolClient("http://www.statuscodewhat.com");
@@ -23,8 +33,18 @@ client.doGet("/200?body={\"name1\":\"value1\"}", requestData1, new JSONResponseH
 - Place the JAR in the Android project's "libs" directory
 - Code
 
+## Table of Contents
+* [Examples](#section_examples)
+	* [ProtocolTask - The Core of Protocol](#section_protocol_task)
+	* [ProtocolClient - Response Types](#section_protocol_client_response)
+	* [ProtocolClient - Request Types](#section_protocol_client_request)
+	* [ProtocolClient - Observe Statuses](#section_protocol_client_statuses)
+	* [Custom ProtocolClient](#section_protocol_client_custom)
+
+<a name='section_examples'></a>
 ## Examples
 
+<a name='section_protocol_task'></a>
 ### Using Protocol at the core level - ProtocolTask
 ProtocolTask is wrapped inside of ProtocolClient(see below). You probably won't have to call a ProtocolTask directly itself.
 ```` java
@@ -40,6 +60,7 @@ ProtocolTask task = new ProtocolTask(HttpMethod.HTTP_GET, "http://www.statuscode
 task.execute();
 ````
 
+<a name='section_protocol_client_response'></a>
 ### Using ProtocolClient and different response types
 ProtocolClient wraps ProtocolTask making common patterns easier to use:
 - Set a base url for each request
@@ -124,6 +145,7 @@ client.doGet("/200", requestData3, new JSONResponseHandler() {
 
 ````
 
+<a name='section_protocol_client_request'></a>
 ### Using ProtocolClient and different request types
 
 ```` java
@@ -189,6 +211,7 @@ client.doPut("/200", requestData7, new StringResponseHandler() {
 
 ````
 
+<a name='section_protocol_client_statuses'></a>
 ### Observing HTTP statuses on a ProtocolClient
 
 ```` java
@@ -236,6 +259,7 @@ client.doGet("/500", null, new JSONResponseHandler() {
 
 ````
 
+<a name='section_protocol_client_custom'></a>
 ### Subclassing ProtocolClient as a singleton
 
 ```` java
