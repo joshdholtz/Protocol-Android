@@ -315,9 +315,9 @@ public class MemberModel extends ProtocolModel {
 
 	@ModelMap(key = "first_name")		public String firstName;
 	@ModelMap(key = "last_name")		public String lastName;
-	@ModelMap(key = "age")			public int age;
+	@ModelMap(key = "age")				public int age;
 	@ModelMap(key = "awesome_level")	public double awesomeLevel;
-	@ModelMap(key = "cool")			public boolean cool;
+	@ModelMap(key = "cool")				public boolean cool;
 	
 }
 
