@@ -1,81 +1,39 @@
 package com.joshdholtz.protocol.lib.models;
 
 import java.util.Date;
+import java.util.List;
 
 import org.json.JSONObject;
 
 import com.joshdholtz.protocol.lib.ProtocolModel;
 import com.joshdholtz.protocol.lib.ProtocolModelFormats;
-import com.joshdholtz.protocol.lib.ProtocolModelFormats.ModelMap;
+import com.joshdholtz.protocol.lib.ProtocolModelFormats.MapConfig;
+import com.joshdholtz.protocol.lib.ProtocolModelFormats.MapModelConfig;
 
 public class MemberModel extends ProtocolModel {
 
-	@ModelMap(key = "first_name", format = ProtocolModelFormats.FORMAT_STRING)
-	private String firstName;
+	@MapConfig(key = "first_name", format = ProtocolModelFormats.FORMAT_STRING)
+	public String firstName;
 	
-	@ModelMap(key = "last_name", format = ProtocolModelFormats.FORMAT_STRING)
-	private String lastName;
+	@MapConfig(key = "last_name", format = ProtocolModelFormats.FORMAT_STRING)
+	public String lastName;
 	
-	@ModelMap(key = "age", format = ProtocolModelFormats.FORMAT_INT)
-	private int age;
+	@MapConfig(key = "age", format = ProtocolModelFormats.FORMAT_INT)
+	public int age;
 	
-	@ModelMap(key = "awesome_level", format = ProtocolModelFormats.FORMAT_DOUBLE)
-	private double awesomeLevel;
+	@MapConfig(key = "awesome_level", format = ProtocolModelFormats.FORMAT_DOUBLE)
+	public double awesomeLevel;
 	
-	@ModelMap(key = "cool", format = ProtocolModelFormats.FORMAT_BOOLEAN)
-	private boolean cool;
+	@MapConfig(key = "cool", format = ProtocolModelFormats.FORMAT_BOOLEAN)
+	public boolean cool;
 	
-	@ModelMap(key = "dob", format = "date") 
-	private Date birthday;
+	@MapConfig(key = "dob", format = "date") 
+	public Date birthday;
 	
-	public MemberModel() {
-		
-	}
+	@MapModelConfig(key = "friend", modelClass = MemberModel.class) 
+	public MemberModel friend;
 	
-	public MemberModel(JSONObject jsonObject) {
-		
-	}
-
-	/**
-	 * @return the firstName
-	 */
-	public String getFirstName() {
-		return firstName;
-	}
-
-	/**
-	 * @return the lastName
-	 */
-	public String getLastName() {
-		return lastName;
-	}
-
-	/**
-	 * @return the age
-	 */
-	public int getAge() {
-		return age;
-	}
-
-	/**
-	 * @return the awesomeLevel
-	 */
-	public double getAwesomeLevel() {
-		return awesomeLevel;
-	}
-
-	/**
-	 * @return the cool
-	 */
-	public boolean isCool() {
-		return cool;
-	}
-
-	/**
-	 * @return the birthday
-	 */
-	public Date getBirthday() {
-		return birthday;
-	}
+	@MapModelConfig(key = "friends", modelClass = MemberModel.class) 
+	public List<MemberModel> friends;
 	
 }

@@ -26,9 +26,15 @@ public class ProtocolModelFormats extends ProtocolClient {
 	private Map<String, MapFormat> formats;
 	
 	@Retention(RetentionPolicy.RUNTIME)
-	public @interface ModelMap {
+	public @interface MapConfig {
 	    String key() default "";
 	    String format() default "default";
+	}
+	
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface MapModelConfig {
+	    String key() default "";
+	    Class modelClass();
 	}
 	
 	public static abstract class MapFormat {

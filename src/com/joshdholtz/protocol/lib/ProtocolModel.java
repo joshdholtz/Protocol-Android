@@ -14,8 +14,10 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
-import com.joshdholtz.protocol.lib.ProtocolModelFormats.ModelMap;
+import com.joshdholtz.protocol.lib.ProtocolModelFormats.MapConfig;
+import com.joshdholtz.protocol.lib.ProtocolModelFormats.MapModelConfig;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 
 import android.util.Log;
@@ -120,8 +122,35 @@ public abstract class ProtocolModel {
 			 
 			 Annotation[] annotations = field.getAnnotations();
 			 
-			 if (field.isAnnotationPresent(ModelMap.class)) {
-				ModelMap map = field.getAnnotation(ModelMap.class);
+			 if (field.isAnnotationPresent(MapModelConfig.class)) {
+				 MapModelConfig map = field.getAnnotation(MapModelConfig.class);
+				 try {
+					Log.d(ProtocolConstants.LOG_TAG, "Tried to set - " + name + " to " + map.key());
+					field.setAccessible(true);
+					if (map.modelClass() != null && ProtocolModel.class.isAssignableFrom(map.modelClass())) {
+						Log.d(ProtocolConstants.LOG_TAG, "We got a class - " + map.modelClass());
+						Log.d(ProtocolConstants.LOG_TAG, "stuff - " + object);
+						Object json = new JSONTokener(object.get(map.key()).toString()).nextValue();
+						Log.d(ProtocolConstants.LOG_TAG, "JSON - " + json.getClass());
+						if (json instanceof JSONObject) {
+							Log.d(ProtocolConstants.LOG_TAG, "JSON object?");
+							field.set(this, ProtocolModel.createModel(map.modelClass(), (JSONObject) json));
+						} else if (json instanceof JSONArray) {
+							Log.d(ProtocolConstants.LOG_TAG, "JSON array?");
+							field.set(this, ProtocolModel.createModels(map.modelClass(), (JSONArray) json));
+						}
+					}
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			 } else if (field.isAnnotationPresent(MapConfig.class)) {
+				MapConfig map = field.getAnnotation(MapConfig.class);
 				try {
 					Log.d(ProtocolConstants.LOG_TAG, "Tried to set - " + name + " to " + map.key());
 					field.setAccessible(true);
