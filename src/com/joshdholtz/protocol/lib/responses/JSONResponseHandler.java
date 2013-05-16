@@ -5,6 +5,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
+
+import android.os.AsyncTask;
+import android.util.Log;
+
 public abstract class JSONResponseHandler extends StringResponseHandler {
 
 	JSONObject jsonObject;
@@ -13,21 +18,34 @@ public abstract class JSONResponseHandler extends StringResponseHandler {
 	@Override
 	public void handleResponse(String stringResponse) {
 		
-		try {
-			Object json = new JSONTokener(stringResponse).nextValue();
-			if (json instanceof JSONObject) {
-				jsonObject = (JSONObject) json;
-			} else if (json instanceof JSONArray) {
-				jsonArray = (JSONArray) json;
+		AsyncTask<String, Void, Object> task = new AsyncTask<String, Void, Object>() {
+			@Override
+			protected Object doInBackground(String... params) {
+				Object json = null;
+				try {
+					json = new JSONTokener(params[0]).nextValue();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				return json;
 			}
-
-		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			
+			@Override
+			protected void onPostExecute(Object json) {
+				if (json != null && json instanceof JSONObject) {
+					jsonObject = (JSONObject) json;
+				} else if (json != null && json instanceof JSONArray) {
+					jsonArray = (JSONArray) json;
+				}
+				
+				handleResponse(jsonObject, jsonArray);
+			}
+		};
+		task.execute(stringResponse);
 		
-		handleResponse(jsonObject, jsonArray);
 	}
 	
 	public abstract void handleResponse(JSONObject jsonObject, JSONArray jsonArray);

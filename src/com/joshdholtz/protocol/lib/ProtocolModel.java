@@ -125,18 +125,13 @@ public abstract class ProtocolModel {
 			 if (field.isAnnotationPresent(MapModelConfig.class)) {
 				 MapModelConfig map = field.getAnnotation(MapModelConfig.class);
 				 try {
-					Log.d(ProtocolConstants.LOG_TAG, "Tried to set - " + name + " to " + map.key());
 					field.setAccessible(true);
 					if (map.modelClass() != null && ProtocolModel.class.isAssignableFrom(map.modelClass())) {
-						Log.d(ProtocolConstants.LOG_TAG, "We got a class - " + map.modelClass());
-						Log.d(ProtocolConstants.LOG_TAG, "stuff - " + object);
 						Object json = new JSONTokener(object.get(map.key()).toString()).nextValue();
-						Log.d(ProtocolConstants.LOG_TAG, "JSON - " + json.getClass());
+						
 						if (json instanceof JSONObject) {
-							Log.d(ProtocolConstants.LOG_TAG, "JSON object?");
 							field.set(this, ProtocolModel.createModel(map.modelClass(), (JSONObject) json));
 						} else if (json instanceof JSONArray) {
-							Log.d(ProtocolConstants.LOG_TAG, "JSON array?");
 							field.set(this, ProtocolModel.createModels(map.modelClass(), (JSONArray) json));
 						}
 					}
@@ -152,7 +147,6 @@ public abstract class ProtocolModel {
 			 } else if (field.isAnnotationPresent(MapConfig.class)) {
 				MapConfig map = field.getAnnotation(MapConfig.class);
 				try {
-					Log.d(ProtocolConstants.LOG_TAG, "Tried to set - " + name + " to " + map.key());
 					field.setAccessible(true);
 					if (map.format().equals("default")) {
 						field.set(this, object.get(map.key()));

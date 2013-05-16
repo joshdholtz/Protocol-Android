@@ -9,6 +9,11 @@
         android:layout_height="wrap_content"
         android:text="@string/hello" />
 
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onClickUploadImage" />
+    
     <ImageView android:id="@+id/img"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />

@@ -64,13 +64,15 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 	
 	@Override
     public void writeTo(final OutputStream output) throws IOException {
+		Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 0");
 		
 		PrintWriter writer = null;
 		try {
+			Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 1");
 			CountingOutputStream countingOutputStream = new CountingOutputStream(output);
 		    writer = new PrintWriter(new OutputStreamWriter(countingOutputStream, "UTF-8"), true); // true = Autoflush, important!
 		    
-
+		    Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 2");
 		    for (int i = 0; i < params.size(); ++i) {
 			    writer.println("--" + boundary);
 			    writer.println("Content-Disposition: form-data; name=\"" + params.get(i).getName() + "\"");
@@ -79,28 +81,35 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 			    writer.println(params.get(i).getValue());
 		    }
 		    
+		    Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3");
 		    List<String> fileNames = new ArrayList<String>(files.keySet());
 		    for (int i = 0; i < fileNames.size(); ++i) {
 		    	File file = files.get(fileNames.get(i));
 		    	
+		    	Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3.1");
 		    	writer.println("--" + boundary);
 			    writer.println("Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
-			    Log.d(ProtocolConstants.LOG_TAG, "Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
 //			    writer.println("Content-Type: " + URLConnection.guessContentTypeFromName(file.getName()));
 			    writer.println("Content-Type: application/octet-stream");
 //			    writer.println("Content-Transfer-Encoding: binary");
 			    writer.println();
+			    
+			    Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3.2");
 		    	
 			    InputStream input = null;
 			    try {
+			    	Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3.3");
 			        input = new FileInputStream(file);
 			        byte[] buffer = new byte[1024];
 			        for (int length = 0; (length = input.read(buffer)) > 0;) {
 			        	countingOutputStream.write(buffer, 0, length);
 			        }
 			        countingOutputStream.flush();
+			        Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3.4");
 			    } finally {
-			        if (input != null) try { input.close(); } catch (IOException logOrIgnore) {}
+			    	Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3.5");
+			        if (input != null) try { input.close(); } catch (IOException logOrIgnore) {logOrIgnore.printStackTrace(); Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3.6");}
+			        Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 3.7");
 			    }
 			    
 //			    if (i < (fileNames.size() - 1)) {
@@ -109,16 +118,23 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 			    
 			    writer.println();
 		    }
-
+		    Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 4");
 		    writer.println("--" + boundary + "--");
 		    
+		    Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 5");
 		    Log.d(ProtocolConstants.LOG_TAG, "Counting size - " + countingOutputStream.getByteCount());
 		    size = countingOutputStream.getByteCount();
-		    
+		    Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 6");
 		} catch (IOException e) {
 			e.printStackTrace();
+			Log.d(ProtocolConstants.LOG_TAG, "ERRORS HAPPENING - " + e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.d(ProtocolConstants.LOG_TAG, "ERRORS HAPPENING - " + e.getMessage());
 		} finally {
+			Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 7");
 		    if (writer != null) writer.close();
+		    Log.d(ProtocolConstants.LOG_TAG, "DEBUG - 8");
 		}
     }
 	
@@ -148,7 +164,6 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 		    	
 		    	println("--" + boundary);
 			    println("Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
-			    Log.d(ProtocolConstants.LOG_TAG, "Content-Disposition: form-data; name=\"" + fileNames.get(i) + "\"; filename=\"" + i + file.getName() + "\"");
 //			    writer.println("Content-Type: " + URLConnection.guessContentTypeFromName(file.getName()));
 			    println("Content-Type: application/octet-stream");
 //			    println("Content-Transfer-Encoding: binary");
@@ -171,6 +186,7 @@ public class ProtocolMultipartEntity extends BasicHttpEntity {
 	public void println(String str) {
 		str = str + "\n";
 		forRealSize += str.getBytes().length;
+		Log.d(ProtocolConstants.LOG_TAG, str);
 	}
 	
 	public class ProxyOutputStream extends FilterOutputStream {

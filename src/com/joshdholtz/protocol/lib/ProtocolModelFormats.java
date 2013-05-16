@@ -96,7 +96,6 @@ public class ProtocolModelFormats extends ProtocolClient {
 	}
 	
 	public static Object get(String format, Object value) {
-		Log.d(ProtocolConstants.LOG_TAG, "Trying to get - " + format);
 		return ProtocolModelFormats.getInstance().formats.get(format).format(value);
 	}
 	

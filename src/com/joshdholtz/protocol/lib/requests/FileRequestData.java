@@ -30,6 +30,7 @@ public class FileRequestData extends ProtocolRequestData {
 	@Override
 	public HttpEntity getEntity() {
 		ProtocolMultipartEntity entity = new ProtocolMultipartEntity(boundary, paramsToValuePairs(params), files);
+//		Log.d(ProtocolConstants.LOG_TAG, "NEED THIS - for real size - " + entity.forRealSize());
 		return entity;
 	}
 	

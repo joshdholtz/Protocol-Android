@@ -550,6 +550,8 @@ public class ProtocolClient {
 						HttpPost httpPostRequest = new HttpPost(route);
 						httpPostRequest.setEntity(entity);
 						httpUriRequest = httpPostRequest;
+//						httpUriRequest.addHeader("Content-Length", String.valueOf(entity.getContentLength()));
+//						Log.d(ProtocolConstants.LOG_TAG, "POST Content-Length of Entity - " + entity.getContentLength());
 						break;
 					case HTTP_PUT:
 						HttpPut httpPutRequest = new HttpPut(route);
@@ -569,12 +571,17 @@ public class ProtocolClient {
 			    }
 			    
 			    if (contentType != null) {
-					httpUriRequest.setHeader("Content-Type", contentType);
+//					httpUriRequest.setHeader("Content-Type", contentType);
 				}
 
+			    if (httpUriRequest.getLastHeader("Content-Length") != null) {
+			    	Log.d(ProtocolConstants.LOG_TAG, "Content-Length That Should Be A Header - " + httpUriRequest.getLastHeader("Content-Length").getValue());
+			    }
+			    
 				HttpResponse httpResponse = httpClient.execute(httpUriRequest);
 				
 				status = httpResponse.getStatusLine().getStatusCode();
+				Log.d(ProtocolConstants.LOG_TAG, "DUDE STATUS - " + status);
 				StringBuffer out = new StringBuffer();
 				
 				// Gets the input stream and unpackages the response into a command
@@ -591,6 +598,8 @@ public class ProtocolClient {
 				return httpResponse;
 				
 			} catch (Exception e) {
+				Log.d(ProtocolConstants.LOG_TAG, "CAUGHT IN EXCEPTION - " + e.getMessage());
+				Log.e(ProtocolConstants.LOG_TAG, "CAUGHT IN EXCEPTION", e);
 				e.printStackTrace();
 			}
 		
