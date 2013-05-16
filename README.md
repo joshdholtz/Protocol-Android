@@ -313,11 +313,11 @@ public class CustomClient extends ProtocolClient {
 ```` java
 public class MemberModel extends ProtocolModel {
 
-	@ModelMap(key = "first_name")		public String firstName;
-	@ModelMap(key = "last_name")		public String lastName;
-	@ModelMap(key = "age")				public int age;
-	@ModelMap(key = "awesome_level")	public double awesomeLevel;
-	@ModelMap(key = "cool")				public boolean cool;
+	@MapConfig(key = "first_name")		public String firstName;
+	@MapConfigkey = "last_name")		public String lastName;
+	@MapConfig(key = "age")				public int age;
+	@MapConfig(key = "awesome_level")	public double awesomeLevel;
+	@MapConfig(key = "cool")			public boolean cool;
 	
 }
 
