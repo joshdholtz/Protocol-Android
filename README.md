@@ -21,7 +21,7 @@ client.doGet("/200?body={\"name1\":\"value1\"}", null, new JSONResponseHandler()
 ````
 
 ## How To Get Started
-- Download the [Protocol JAR](https://github.com/joshdholtz/Protocol-Android/raw/master/builds/protocol-1.0.4.jar)
+- Download the [Protocol JAR](https://github.com/joshdholtz/Protocol-Android/raw/master/builds/protocol-1.0.5.jar)
 - Place the JAR in the Android project's "libs" directory
 - Code
 

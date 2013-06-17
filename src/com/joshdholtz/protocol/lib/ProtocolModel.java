@@ -24,6 +24,12 @@ import android.util.Log;
 
 public abstract class ProtocolModel {
 	
+	private static boolean debug = false;
+	
+	public static void setDebug(boolean debug) {
+		ProtocolModel.debug = debug;
+	}
+	
 	public static <T extends ProtocolModel>T createModel(Class<T> clazz, String jsonData) {
 		T instance = null;
 		
@@ -31,8 +37,9 @@ public abstract class ProtocolModel {
 			instance = clazz.newInstance();
 			instance.initFromJSONString(jsonData);
 		} catch (Exception e) {
-			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + " from " + jsonData);
-			e.printStackTrace();
+			if (debug) {
+				Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + " from " + jsonData, e);
+			}
 		}
 		
 		return instance;
@@ -44,8 +51,9 @@ public abstract class ProtocolModel {
 			instance = clazz.newInstance();
 			instance.initFromJSONObject(object);
 		} catch (Exception e) {
-			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + " from " + object);
-			e.printStackTrace();
+			if (debug) {
+				Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + " from " + object, e);
+			}
 		}
 		
 		return instance;
@@ -57,9 +65,10 @@ public abstract class ProtocolModel {
 			JSONArray array = new JSONArray(jsonData);
 			return ProtocolModel.createModels(clazz, array);
 		} catch (Exception e) {
-			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s - " + e.getClass() + " " + e.getMessage());
-			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s from " + jsonData);
-			e.printStackTrace();
+			if (debug) {
+				Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s - " + e.getClass() + " " + e.getMessage(), e);
+				Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s from " + jsonData, e);
+			}
 		}
 		return instances;
 	}
@@ -81,8 +90,9 @@ public abstract class ProtocolModel {
 				}
 			}
 		} catch (Exception e) {
-			Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s - " + e.getClass() + " " + e.getMessage());
-			e.printStackTrace();
+			if (debug) {
+				Log.e(ProtocolConstants.LOG_TAG,  "Could not create " + clazz.getCanonicalName() + "s - " + e.getClass() + " " + e.getMessage(), e);
+			}
 		}
 		
 		return instances;
@@ -108,7 +118,9 @@ public abstract class ProtocolModel {
 			success = this.initFromJSONObject(object);
 		} catch (JSONException e) {
 			success = false;
-			e.printStackTrace();
+			if (debug) {
+				Log.e(ProtocolConstants.LOG_TAG, "Error parsing JSON string", e);
+			}
 		}
 		
 		return success;
@@ -136,13 +148,21 @@ public abstract class ProtocolModel {
 						}
 					}
 				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				} catch (IllegalAccessException e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				} catch (JSONException e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				}
 			 } else if (field.isAnnotationPresent(MapConfig.class)) {
 				MapConfig map = field.getAnnotation(MapConfig.class);
@@ -154,13 +174,21 @@ public abstract class ProtocolModel {
 						field.set(this, ProtocolModelFormats.get(map.format(), object.get(map.key())));
 					}
 				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				} catch (IllegalAccessException e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				} catch (JSONException e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					if (debug) {
+						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
+					}
 				}
 			 }
 		}
@@ -176,7 +204,9 @@ public abstract class ProtocolModel {
 				
 			} catch (JSONException e) {
 				success = false;
-				e.printStackTrace();
+				if (debug) {
+					Log.e(ProtocolConstants.LOG_TAG, "Error with legacy map to class");
+				}
 			}
 		}
 		
