@@ -21,7 +21,6 @@ import com.joshdholtz.protocol.lib.R;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
 import com.joshdholtz.protocol.lib.models.MemberModel;
-import com.joshdholtz.protocol.lib.models.MenuItemModel;
 import com.joshdholtz.protocol.lib.requests.FileRequestData;
 import com.joshdholtz.protocol.lib.requests.JSONRequestData;
 import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
