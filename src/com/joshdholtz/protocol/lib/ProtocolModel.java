@@ -137,16 +137,18 @@ public abstract class ProtocolModel {
 			 if (field.isAnnotationPresent(MapModelConfig.class)) {
 				 MapModelConfig map = field.getAnnotation(MapModelConfig.class);
 				 try {
-					field.setAccessible(true);
-					if (map.modelClass() != null && ProtocolModel.class.isAssignableFrom(map.modelClass())) {
-						Object json = new JSONTokener(object.get(map.key()).toString()).nextValue();
-						
-						if (json instanceof JSONObject) {
-							field.set(this, ProtocolModel.createModel(map.modelClass(), (JSONObject) json));
-						} else if (json instanceof JSONArray) {
-							field.set(this, ProtocolModel.createModels(map.modelClass(), (JSONArray) json));
+					 if (object.get(map.key()) != null) {
+						field.setAccessible(true);
+						if (map.modelClass() != null && ProtocolModel.class.isAssignableFrom(map.modelClass())) {
+							Object json = new JSONTokener(object.get(map.key()).toString()).nextValue();
+							
+							if (json instanceof JSONObject) {
+								field.set(this, ProtocolModel.createModel(map.modelClass(), (JSONObject) json));
+							} else if (json instanceof JSONArray) {
+								field.set(this, ProtocolModel.createModels(map.modelClass(), (JSONArray) json));
+							}
 						}
-					}
+					 }
 				} catch (IllegalArgumentException e) {
 					if (debug) {
 						Log.e(ProtocolConstants.LOG_TAG, "Error setting field " + name, e);
@@ -167,11 +169,13 @@ public abstract class ProtocolModel {
 			 } else if (field.isAnnotationPresent(MapConfig.class)) {
 				MapConfig map = field.getAnnotation(MapConfig.class);
 				try {
-					field.setAccessible(true);
-					if (map.format().equals("default")) {
-						field.set(this, object.get(map.key()));
-					} else {
-						field.set(this, ProtocolModelFormats.get(map.format(), object.get(map.key())));
+					if (object.get(map.key()) != null) {
+						field.setAccessible(true);
+						if (map.format().equals("default")) {
+							field.set(this, object.get(map.key()));
+						} else {
+							field.set(this, ProtocolModelFormats.get(map.format(), object.get(map.key())));
+						}
 					}
 				} catch (IllegalArgumentException e) {
 					if (debug) {

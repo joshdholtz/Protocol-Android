@@ -21,6 +21,7 @@ import com.joshdholtz.protocol.lib.R;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants;
 import com.joshdholtz.protocol.lib.helpers.ProtocolConstants.HttpMethod;
 import com.joshdholtz.protocol.lib.models.MemberModel;
+import com.joshdholtz.protocol.lib.models.MenuItemModel;
 import com.joshdholtz.protocol.lib.requests.FileRequestData;
 import com.joshdholtz.protocol.lib.requests.JSONRequestData;
 import com.joshdholtz.protocol.lib.requests.ParamsRequestData;
@@ -52,7 +53,7 @@ public class ProtocolActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		img = (ImageView) this.findViewById(R.id.img);
+//		img = (ImageView) this.findViewById(R.id.img);
 		
 		// Adds custom model mapping
 //		ProtocolModelFormats.set("date", new MapFormat() {
@@ -68,7 +69,7 @@ public class ProtocolActivity extends Activity {
 //			}
 //			
 //		});
-		
+//		
 //		// Test model mapping
 //		MemberModel member = ProtocolModel.createModel(MemberModel.class, 
 //				"{\"first_name\":\"Josh\"," +
@@ -120,8 +121,6 @@ public class ProtocolActivity extends Activity {
 //		});
 //		task.execute();
 //		
-		ProtocolClient client = new ProtocolClient("http://www.statuscodewhat.com");
-		client.setDebug(true);
 //		
 //		client.addHeader("client_test_request_header", "client_test_request_header_value");
 //		client.addHeader("client_test_request_header_override", "THIS SHOULDN'T SHOW");
@@ -135,25 +134,10 @@ public class ProtocolActivity extends Activity {
 //
 //			
 //		});
-//		
-		ParamsRequestData requestData1 = new ParamsRequestData();
-		requestData1.addParam("body", "{\"name1\":\"value1\",\"name2\":\"value2\",\"name3\":\"value3\"}");
-		client.doGet("/200", requestData1, new JSONResponseHandler() {
-
-			@Override
-			public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
-				if (jsonArray != null) {
-					Toast.makeText(getApplication(), "JSON Array Size - " + jsonArray.length(), Toast.LENGTH_SHORT).show();
-				} else if (jsonObject != null) {
-					Toast.makeText(getApplication(), "JSON Object Size - " + jsonObject.length(), Toast.LENGTH_SHORT).show();
-				}
-			}
-			
-		});
-//		
-//		ParamsRequestData requestData2 = new ParamsRequestData();
-//		requestData2.addParam("body", "[{\"name1\":\"value1\",\"name2\":\"value2\"},{\"name1\":\"value1\",\"name2\":\"value2\"}]");
-//		client.doGet("/200", requestData2, new JSONResponseHandler() {
+		
+//		ParamsRequestData requestData1 = new ParamsRequestData();
+//		requestData1.addParam("body", "{\"name1\":\"value1\",\"name2\":\"value2\",\"name3\":\"value3\"}");
+//		client.doGet("/200", requestData1, new JSONResponseHandler() {
 //
 //			@Override
 //			public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
@@ -161,6 +145,31 @@ public class ProtocolActivity extends Activity {
 //					Toast.makeText(getApplication(), "JSON Array Size - " + jsonArray.length(), Toast.LENGTH_SHORT).show();
 //				} else if (jsonObject != null) {
 //					Toast.makeText(getApplication(), "JSON Object Size - " + jsonObject.length(), Toast.LENGTH_SHORT).show();
+//				}
+//			}
+//			
+//		});
+//		
+//		ParamsRequestData requestData2 = new ParamsRequestData();
+//		requestData2.addParam("body", "{\"first_name\":\"Josh\"," +
+//				"\"last_name\":\"Holtz\"," +
+//				"\"age\":4," +
+//				"\"awesome_level\":\"4.6\"," +
+//				"\"cool\":null," +
+//				"\"dob\":\"2012-10-12T22:55:20+00:00\"," +
+//				"\"friend\":{\"first_name\":\"Bandit\"}," +
+//				"\"friends\":[{\"first_name\":\"Bandit\"},{\"first_name\":\"Bandit\"}]" +
+//				"}");
+//		client.doGet("/200", requestData2, new JSONResponseHandler() {
+//
+//			@Override
+//			public void handleResponse(JSONObject jsonObject, JSONArray jsonArray) {
+//				if (jsonArray != null) {
+////					Toast.makeText(getApplication(), "JSON Array Size - " + jsonArray.length(), Toast.LENGTH_SHORT).show();
+//				} else if (jsonObject != null) {
+//					MemberModel member = ProtocolModel.createModel(MemberModel.class, jsonObject);
+//					Toast.makeText(getApplication(), "Cool - " + member.cool, Toast.LENGTH_LONG).show();
+////					Toast.makeText(getApplication(), "JSON Object Size - " + jsonObject.length(), Toast.LENGTH_SHORT).show();
 //				}
 //			}
 //			
