@@ -143,9 +143,15 @@ public abstract class ProtocolModel {
 							Object json = new JSONTokener(object.get(map.key()).toString()).nextValue();
 							
 							if (json instanceof JSONObject) {
-								field.set(this, ProtocolModel.createModel(map.modelClass(), (JSONObject) json));
+								Object val = ProtocolModel.createModel(map.modelClass(), (JSONObject) json);
+								if (val != null) {
+									field.set(this, val);
+								}
 							} else if (json instanceof JSONArray) {
-								field.set(this, ProtocolModel.createModels(map.modelClass(), (JSONArray) json));
+								Object val = ProtocolModel.createModels(map.modelClass(), (JSONArray) json);
+								if (val != null) {
+										field.set(this, val);
+								}
 							}
 						}
 					 }
@@ -174,7 +180,10 @@ public abstract class ProtocolModel {
 						if (map.format().equals("default")) {
 							field.set(this, object.get(map.key()));
 						} else {
-							field.set(this, ProtocolModelFormats.get(map.format(), object.get(map.key())));
+							Object val = ProtocolModelFormats.get(map.format(), object.get(map.key()));
+							if (val != null) {
+								field.set(this, val);
+							}
 						}
 					}
 				} catch (IllegalArgumentException e) {
