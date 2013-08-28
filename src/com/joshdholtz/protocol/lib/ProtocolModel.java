@@ -137,7 +137,7 @@ public abstract class ProtocolModel {
 			 if (field.isAnnotationPresent(MapModelConfig.class)) {
 				 MapModelConfig map = field.getAnnotation(MapModelConfig.class);
 				 try {
-					 if (object.get(map.key()) != null) {
+					 if (!object.isNull(map.key())) {
 						field.setAccessible(true);
 						if (map.modelClass() != null && ProtocolModel.class.isAssignableFrom(map.modelClass())) {
 							Object json = new JSONTokener(object.get(map.key()).toString()).nextValue();
@@ -175,7 +175,7 @@ public abstract class ProtocolModel {
 			 } else if (field.isAnnotationPresent(MapConfig.class)) {
 				MapConfig map = field.getAnnotation(MapConfig.class);
 				try {
-					if (object.get(map.key()) != null) {
+					if (!object.isNull(map.key())) {
 						field.setAccessible(true);
 						if (map.format().equals("default")) {
 							field.set(this, object.get(map.key()));
